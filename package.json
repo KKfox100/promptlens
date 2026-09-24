@@ -5,9 +5,15 @@
   "description": "PromptLens —— 通过多轮拆解与选择，帮不懂 Prompt 的人也能写出高质量提示词",
   "main": "server.js",
   "scripts": {
-    "start": "node server.js"
+    "start": "node server.js",
+    "dev:worker": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "db:init": "wrangler d1 execute promptlens --remote --file=worker/schema.sql"
   },
   "engines": {
     "node": ">=18"
+  },
+  "devDependencies": {
+    "wrangler": "^4.137.0"
   }
 }

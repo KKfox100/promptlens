@@ -1,0 +1,49 @@
+# PromptLens · Cloudflare Workers 部署配置
+# ====================================================================
+# 部署：npx wrangler deploy
+# 本地跑（不用连 Cloudflare）：npx wrangler dev
+#
+# 本地开发的正常路径仍然是 `node server.js`（零依赖、零配置、数据落 data/db.json）。
+# 这个文件是**另一个运行时**的配置，两边接口逐条对齐，见 worker/index.js 顶部注释。
+
+name = "promptlens"
+main = "worker/index.js"
+
+# 兼容日期。**这个日期不能随便往回改**：
+# 从 2026-08-04 起，Workers 默认开启 nodejs_compat（`node:crypto` 的 scrypt
+# 就是靠它才可用）。改早于这个日期，worker/index.js 里那句
+# `import { scryptSync } from 'node:crypto'` 会在运行时炸掉，
+# 而报错发生在请求处理里，不在部署时 —— 部署会「成功」。
+compatibility_date = "2026-09-24"
+
+# ---- 静态资源 ------------------------------------------------------
+# public/ 是**没有构建步骤**的静态站点（原生 HTML/CSS/JS，资源全用相对路径）。
+# 所以不需要 build 命令，直接把目录交给 Cloudflare。
+[assets]
+directory = "./public"
+binding = "ASSETS"
+
+# 让 Worker 处理**所有**请求，而不是「命中静态文件就绕过 Worker」。
+#
+# 为什么必须开：静态资源绑定没有「目录」这个概念，而这套站点的地址里有
+# `/login`（要重写成 /login.html）、`/en`（要 301 补斜杠）、`/`（要映射到
+# index.html）—— 这些规则都得跑代码。绕开 Worker 的话它们会直接 404。
+#
+# 代价是每个静态请求都要过一次 Worker（然后由 ASSETS 绑定取文件，仍然走
+# Cloudflare 的边缘缓存）。这套站点只有几十个文件，这个代价可以忽略。
+run_worker_first = true
+
+# ---- 数据库 --------------------------------------------------------
+# 建库：npx wrangler d1 create promptlens
+#       它会把 database_id 打出来，粘到下面（**这个 id 不是密钥**，可以入库）。
+# 建表：npx wrangler d1 execute promptlens --remote --file=worker/schema.sql
+[[d1_databases]]
+binding = "DB"
+database_name = "promptlens"
+database_id = "00000000-0000-0000-0000-000000000000"
+
+# ---- 日志 ----------------------------------------------------------
+# 线上排查用：`npx wrangler tail` 能看到 console.error 的输出。
+# worker/index.js 里 API 出异常时会打 [api] 前缀的堆栈。
+[observability]
+enabled = true
