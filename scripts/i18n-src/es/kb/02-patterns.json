@@ -1,0 +1,136 @@
+{
+  "__byPath__": {
+    "L.visualEnd.video": ".",
+    "L.signalLabels.运镜": "Movimiento de cámara",
+    "L.questions.intent.perScenario.ideation[0].label": "Lluvia de ideas",
+    "L.questions.depth.options[0].label": "Mínimo",
+    "L.extractFlags": {
+      "image": {
+        "hasComposition": "i",
+        "hasLighting": "i",
+        "hasStyle": "i",
+        "hasColor": "i",
+        "hasRatio": "i",
+        "hasNegative": "i"
+      },
+      "video": {
+        "hasAction": "i",
+        "hasShot": "i",
+        "hasMove": "i",
+        "hasStyle": "i",
+        "hasLighting": "i",
+        "hasDuration": "i",
+        "hasAudio": "i",
+        "hasNegative": "i"
+      },
+      "text": {
+        "hasRole": "i",
+        "hasAudience": "i",
+        "hasFormat": "i",
+        "hasTone": "i",
+        "hasConstraint": "i",
+        "hasExample": "i",
+        "hasLength": "i",
+        "hasBackground": "i"
+      }
+    },
+    "L.detailFlags": {
+      "visualSubject": "i",
+      "image": {
+        "lighting": "i",
+        "style": "i",
+        "color": "i"
+      },
+      "video": {
+        "shot": "i",
+        "move": "i",
+        "style": "i",
+        "lighting": "i",
+        "audio": "i"
+      },
+      "text": {
+        "task": "i",
+        "role": "i",
+        "format": "i",
+        "styleTone": "i",
+        "styleDepth": "i"
+      }
+    }
+  },
+
+  "帮我写|写一篇|写个|写一段|写一份|写一个|生成一篇|帮我想|想几个|取个名|取名|起名|命名|总结|分析|解释|讲解|翻译|润色|改写|代码|脚本|方案|报告|文案|策划|提纲|大纲|回信|邮件": "escríbeme|escribe|escribir|redacta|redactar|resume|resumir|analiz|análisis|explica|explicar|traduce|traducir|pule|reescrib|reescritura|corrige|código|programa|guion|propuesta|informe|copy|esquema|correo|email|lluvia de ideas|dame ideas|ponle nombre|cuenta palabras",
+
+  "戴着|穿着|坐在|站在|躺在|趴在|走在|奔跑|飞过|悬停|背影|侧脸|一只手|特写|近景|中景|远景|镜头|画面|背景是|光线|色调|氛围|景深|虚化|质感|插画|写实|赛博|动漫|一只|一张|一幅|街头|街道|街上|夜景|霓虹|倒影|影子|雪山|湖泊|森林|沙漠|天空|阳光|月光|灯光|纹路|纹理|房间|室内|建筑|高楼|屋顶|地板|草地|沙滩|地铁|咖啡馆|书店|餐桌|树叶|黄昏|清晨|傍晚|日出|日落|星空|银河|雾气|积水|阳台|窗台|小巷": "lleva puesto|llevando|viste|sentado|sentada|de pie|tumbado|tumbada|apoyado|apoyada|caminando|corriendo|sobrevolando|suspendido|de espaldas|de perfil|primer plano|plano medio|plano general|plano cercano|cámara|encuadre|el fondo es|iluminación|luz|tono de color|atmósfera|profundidad de campo|desenfoque|textura|ilustración|fotorrealista|cyberpunk|anime|un gato|un perro|una mujer|un hombre|calle|escena nocturna|neón|reflejo|sombra|montaña nevada|lago|bosque|desierto|cielo|luz del sol|luz de luna|luz de neón|habitación|interior|edificio|rascacielos|azotea|suelo|césped|playa|metro|cafetería|librería|mesa de comedor|hojas|atardecer|amanecer|anochecer|salida del sol|puesta de sol|cielo estrellado|galaxia|niebla|charco|balcón|alféizar|callejón",
+
+  "走在|奔跑|飞过|飘落|流动|转身|回头|延时|慢动作|升格|运镜|一镜到底|多镜头|镜头切换|切换镜头|拍一段|拍个|拍一条|拍摄|镜头(推|拉|摇|移|跟|升|降)": "caminando|corriendo|sobrevolando|cayendo|fluyendo|girando|mirando atrás|timelapse|time-lapse|cámara lenta|slow motion|movimiento de cámara|plano secuencia|varios planos|cambio de plano|corte entre planos|graba|grabar|rodaje|filmando|movimiento (de )?cámara|(acerca|aleja|panea|sigue|sube|baja) la cámara",
+
+  "景别|特写|近景|中景|全景|远景|俯拍|仰拍|平视|视角|构图|三分|居中|留白|微距|航拍|对称": "plano general|plano medio|plano americano|primer plano|primerísimo|plano detalle|vista desde arriba|ángulo bajo|ángulo alto|a nivel de ojos|punto de vista|composición|regla de los tercios|centrado|espacio negativo|macro|aéreo|simetr",
+
+  "光|照明|逆光|侧光|柔光|硬光|霓虹|黄昏|黄金时刻|氛围|暗调|高调": "luz|iluminación|contraluz|a contraluz|luz lateral|luz suave|luz dura|neón|atardecer|hora dorada|ambiente|tonos oscuros|clave alta|clave baja",
+
+  "风格|写实|插画|动漫|二次元|3d|渲染|油画|水墨|赛博|胶片|像素|摄影|手绘|概念图": "estilo|fotorreal|ilustración|anime|manga|3d|render|óleo|pintura al óleo|tinta aguada|cyberpunk|look de película|píxel|foto|dibujo a mano|arte conceptual|acuarela|diseño plano",
+
+  "色|色调|配色|冷色|暖色|黑白|饱和度|莫兰迪": "color|paleta|tonos cálidos|tonos fríos|blanco y negro|monocromo|saturación|saturado|apagado|sepia",
+
+  "\\d+\\s*:\\s*\\d+|方图|竖图|横图|宽幅|比例|画幅": "\\d+\\s*:\\s*\\d+|relación de aspecto|cuadrado|orientación vertical|orientación horizontal|vertical|horizontal|formato completo",
+
+  "不要|避免|禁止|排除|别出现|no ": "sin |evita|evitar|excluye|excluir|nada de|no incluyas|no quiero|prompt negativo",
+
+  "动作|转身|走动|走|跑|飞|抬手|进入|离开|变化|互动|说话|笑|点头|风吹|流动": "acción|gira|girar|camina|caminando|corre|corriendo|vuela|volando|levanta|entra|sale|salir|cambia|cambio|interactúa|habla|sonríe|asiente|viento|fluye|se mueve|movimiento|baila|salta|alcanza",
+
+  "景别|特写|近景|中景|全景|远景|大远景|镜头": "plano|primer plano|plano medio|plano general|plano americano|plano detalle|gran plano general|ángulo|encuadre",
+
+  "运镜|推近|拉远|摇镜|横移|跟拍|环绕|升降|手持|航拍|固定机位|长镜头|一镜到底": "movimiento de cámara|acercamiento|alejamiento|paneo|paneado|travelling|seguimiento|órbita|grúa|en mano|cámara en mano|aéreo|dron|plano secuencia|cámara fija|zoom|dolly|tilt",
+
+  "风格|电影|纪录|广告|动漫|动画|定格|vhs|赛博|写实|质感": "estilo|cinematográfic|documental|publicitari|anime|animación|stop motion|vhs|cyberpunk|realista|textura|look de película",
+
+  "光|照明|夜景|日光|逆光|霓虹|黄金时刻": "luz|iluminación|noche|nocturn|luz de día|contraluz|a contraluz|neón|hora dorada|atardecer",
+
+  "\\d+\\s*秒|时长|多长|秒|分钟|分镜": "\\d+\\s*(s|seg|segs|segundo|segundos)\\b|duración|cuánto dura|minutos|storyboard|plano único|un solo plano",
+
+  "配乐|背景音乐|BGM|环境音|音效|旁白|人声|画外音|音轨|静音|无声": "banda sonora|música de fondo|bgm|sonido ambiente|ambiente sonoro|efecto de sonido|sfx|voz en off|narración|diálogo|pista de audio|silenciado|sin audio|música|sin sonido",
+
+  "你是|扮演|作为一位|作为一名|充当|以.{1,8}的身份": "actúa como|actuando como|eres (un|una|el|la)|asume el papel|haz de|en el papel de|como experto|como un experto|como una experta|como senior|como un profesional|ponte en el papel",
+
+  "给[^，。；、\\s]{0,8}(看|听|读|用)|受众|读者|面向|写给|讲给|说给": "para (principiantes|expertos|niños|estudiantes|directivos|lectores|usuarios|mi equipo)|público|lectores|dirigido a|destinado a|escrito para|hablando a|explicar a|sin conocimientos técnicos|para gente",
+
+  "格式|表格|列表|分点|markdown|大纲|字数|字以内|字左右|结构|分章节|json|代码块|排版": "formato|tabla|viñeta|lista|markdown|esquema|outline|límite de palabras|\\d+\\s*palabras|estructura|secciones|json|bloque de código|numerad|lista de comprobación|encabezados",
+
+  "语气|风格|口吻|幽默|正式|轻松|严肃|专业|亲切|严谨": "tono|estilo|voz|humor|formal|informal|coloquial|relajado|serio|profesional|cercano|riguroso|divertido|desenfadado",
+
+  "不要|禁止|避免|必须|务必|不能|严禁|切记": "\\bno\\b |evita|evitar|nunca|debe|debes|obligatorio|asegúrate|sin |prohibido|no puede",
+
+  "例如|举例|比如|示例|样例|参考如下|类似于": "por ejemplo|p\\. ej\\.|ej\\.|como por ejemplo|tal como|ejemplo|muestra|referencia|similar a",
+
+  "(\\d+)\\s*字|字数|篇幅|一页|两页|多少页": "(\\d+)\\s*(palabras|caracteres|páginas?)|recuento de palabras|extensión|una página|dos páginas|cuántas páginas|máximo de palabras",
+
+  "背景|因为|由于|目前|我们(公司|团队|产品)|场景是|情况是|目的是|这是给": "contexto|antecedentes|porque|ya que|actualmente|somos|tenemos|nuestra (empresa|compañía|equipo|producto)|el contexto es|la situación es|el objetivo es|esto es para",
+
+  "一只|一个|一位|一名|一只|穿着|戴着|站在|坐在|躺在": "lleva puesto|viste|de pie|sentado|sentada|tumbado|tumbada|apoyado|sosteniendo|posando|retrato|una foto de|una imagen de|una escena de|primer plano de|plano de",
+
+  "柔|硬|暖|冷|逆光|侧光|自然光|影棚": "suave|dura|duro|cálid|frí|contraluz|a contraluz|luz lateral|luz natural|luz de estudio",
+
+  "风格|质感|感$": "estilo|textura|look$",
+
+  "冷暖|饱和|灰调|黑白": "cálid|frí|satur|apagad|monocrom|blanco y negro",
+
+  "镜头": "plano",
+
+  "推|拉|摇|移|跟|环绕|航拍": "acercamiento|alejamiento|paneo|paneado|travelling|seguimiento|órbita|aéreo|dron|dolly|zoom|tilt",
+
+  "电影|纪录|广告|动漫|一镜到底": "cinematográfic|documental|publicitari|anime|plano secuencia|look de película",
+
+  "黄金时刻|夜景|逆光": "hora dorada|noche|nocturn|contraluz|a contraluz",
+
+  "配乐|背景音乐|BGM|环境音|音效|旁白|人声|画外音|钢琴|大提琴|弦乐|雨声|音轨|静音|无声": "banda sonora|música de fondo|bgm|sonido ambiente|efecto de sonido|sfx|voz en off|narración|piano|violonchelo|cuerdas|sonido de lluvia|pista de audio|silenciado|sin sonido",
+
+  "帮我|请|我要|我想|需要|生成|写|做|分析|设计|整理|给出": "escríbeme|escribe|por favor|quiero|necesito|me gustaría|genera|crea|analiz|diseña|organiza|dame|haz",
+
+  "专家|资深|专业": "experto|experta|senior|profesional|especialista",
+
+  "表格|列表|分点|大纲|json": "tabla|lista|viñeta|esquema|json",
+
+  "语气|口吻|调性|风格|正式|口语|幽默|严谨|通俗|专业|亲切": "tono|voz|estilo|formal|coloquial|informal|humor|riguroso|sencillo|profesional|cercano",
+
+  "深入|详细|详尽|简略|简要|展开|概述|点到为止|精简|逐条": "en profundidad|detallad|breve|resumen|visión general|conciso|paso a paso|amplía|desarrolla|punto por punto"
+}

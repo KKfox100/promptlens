@@ -1,0 +1,31 @@
+# PromptLens
+
+> PromptLens convierte escribir un prompt en una serie de elecciones: rol, audiencia, formato, tono, restricciones. Tú decides. Admite texto, imagen y vídeo, y te entrega un prompt terminado que puedes copiar tal cual.
+
+## Cómo funciona
+- [Cómo funciona](https://promptlens.example.com/es/#how): Son solo cuatro pasos y no hace falta que escribas ni un detalle técnico por el camino: tú solo eliges.
+
+## En qué se diferencia de «que la IA te lo escriba»
+- [En qué se diferencia de «que la IA te lo escriba»](https://promptlens.example.com/es/#why): Si dejas que el modelo lo haga todo, recibes lo que ha adivinado. Si lo desglosas en elecciones, recibes lo que has pedido. Por eso un resultado de PromptLens no se lee como escrito por una IA.
+
+## Los tres casos que cubre
+- [Los tres casos que cubre](https://promptlens.example.com/es/#scenes): Los tres casos se desglosan de forma totalmente distinta, así que PromptLens tiene tres flujos separados, no una misma plantilla con las palabras cambiadas.
+
+## Preguntas frecuentes
+- [Preguntas frecuentes](https://promptlens.example.com/es/#faq)
+- No tengo ni idea de prompts. ¿Puedo usarlo igual?
+- ¿En qué se diferencia de usar ChatGPT directamente?
+- ¿En qué herramientas puedo usar el prompt que genero?
+- ¿Puedo editar yo el storyboard del vídeo?
+- ¿Por qué dos personas sacan prompts distintos de la misma frase?
+- ¿Cuesta algo? ¿Verá alguien más lo que necesito?
+
+## Idioma
+- [简体中文](https://promptlens.example.com/)
+- [繁體中文](https://promptlens.example.com/zh-Hant/)
+- [English](https://promptlens.example.com/en/)
+- [日本語](https://promptlens.example.com/ja/)
+- [한국어](https://promptlens.example.com/ko/)
+
+## llms-full.txt
+- [llms-full.txt](https://promptlens.example.com/es/llms-full.txt)

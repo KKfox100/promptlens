@@ -1,0 +1,22 @@
+# 这个仓库的换行符是**内容的一部分**，不是平台差异 —— 关掉所有自动转换。
+#
+# 为什么必须关：
+#   · `scripts/browser-check.js` 是**纯 CRLF**，而它里面那些多行锚点按 `\r\n` 拼；
+#   · `main.css` / `mutation-check-ui.js` / `check-landing-live.js` 是**纯 LF**。
+#
+# 一旦让 git 按平台转换（Windows 上 `core.autocrlf=true` 是默认习惯），
+# 别人 clone 下来行尾就变了，`mutation-check-ui.js` 的锚点会「命中 0 次」——
+# 而报错只说锚点找不到，看着像内容写错了，实际是换行符被动过。
+#
+# `-text` = 「别管这个文件，原样存取」。比 `text=auto eol=lf` 更合适：
+# 我们要的是**字节级一致**，不是「统一成某种行尾」。
+* -text
+
+# 二进制文件不需要 diff，标一下只是让 GitHub 不去猜
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.webp binary
+*.ico binary
+*.woff2 binary

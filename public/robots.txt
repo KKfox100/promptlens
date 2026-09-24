@@ -1,0 +1,105 @@
+# PromptLens · robots.txt
+# 站点只有一个可收录的页面（公开落地页 /），其余都在登录后面。
+
+User-agent: *
+Allow: /
+
+# 接口挡掉：爬虫进来只会拿到 JSON，对索引没有任何价值，白白消耗抓取预算。
+Disallow: /api/
+
+# 注意：/login 和 /app.html **故意没有**写在这里。
+# 它们靠页面上的 <meta name="robots" content="noindex"> 来阻止收录，而不是靠 Disallow。
+# 这两件事不能同时做 —— 一旦 Disallow，爬虫就永远读不到那行 noindex，
+# 于是「被别处链接过的地址」仍然可能以「无标题、无摘要」的形式出现在结果里，
+# 那比老老实实 noindex 更糟。所以：二选一，这里选了 noindex。
+
+# ==================================================================
+# AI 爬虫：全部允许，逐条列明
+# ==================================================================
+# 为什么逐条写出来（明明上面那个 * 已经放行了）
+#
+#   一是**给以后留锚点**。AI 爬虫的规矩变得很快，哪天要收紧某一类，
+#   得先知道它在不在名单上。而「一个都没写」查不出「漏了谁」——
+#   只能靠记忆，而记忆不会报错。
+#
+#   二是**这份名单本身就是一份声明**：我们想过这件事，
+#   并且选择让 AI 读、让 AI 引用、让 AI 学。
+#   这个产品的目标就是「被 AI 推荐」，所以两件事都允许。
+#
+# 分成两类写。它们的后果不同，将来要改也只改一类：
+#   检索引用型 —— 用户在 AI 里提问时，这些爬虫来取内容并给出来源链接。
+#                 决定「能不能当场引用你」。
+#   训练型     —— 决定「能不能被写进模型」，也就是长期记不记得你。
+#
+# ⚠️ Google-Extended / Applebot-Extended 不是独立爬虫，而是
+#    「拿已经抓到的内容做 AI 训练」的用途开关。它们不控制抓取、只控制用途，
+#    所以这里的 Allow 表达的是「可以用来训练」。
+#    不写也默认允许，写出来是为了把意图落在纸面上。
+
+# ---- 检索引用型 ----
+User-agent: OAI-SearchBot
+Allow: /
+
+User-agent: ChatGPT-User
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+User-agent: Perplexity-User
+Allow: /
+
+User-agent: Claude-User
+Allow: /
+
+User-agent: DuckAssistBot
+Allow: /
+
+User-agent: MistralAI-User
+Allow: /
+
+# ---- 训练型 ----
+User-agent: GPTBot
+Allow: /
+
+User-agent: ClaudeBot
+Allow: /
+
+User-agent: anthropic-ai
+Allow: /
+
+User-agent: Claude-Web
+Allow: /
+
+User-agent: Google-Extended
+Allow: /
+
+User-agent: Applebot-Extended
+Allow: /
+
+User-agent: CCBot
+Allow: /
+
+User-agent: Bytespider
+Allow: /
+
+User-agent: meta-externalagent
+Allow: /
+
+User-agent: Amazonbot
+Allow: /
+
+User-agent: cohere-ai
+Allow: /
+
+User-agent: YouBot
+Allow: /
+
+User-agent: Diffbot
+Allow: /
+
+User-agent: Timpibot
+Allow: /
+
+Sitemap: https://promptlens.example.com/sitemap.xml
+# 上线前把上面的域名换成真实域名（见 index.html 顶部注释里列的全部位置）。

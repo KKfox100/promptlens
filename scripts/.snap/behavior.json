@@ -1,0 +1,619 @@
+{
+ "cases": [
+  {
+   "text": "帮我写一篇关于远程办公的公众号文章，要给公司同事看的，2000 字左右",
+   "matched": "writing",
+   "ranked": "writing:7",
+   "family": "text",
+   "signals": {
+    "hasRole": false,
+    "hasAudience": true,
+    "hasFormat": true,
+    "hasTone": false,
+    "hasConstraint": false,
+    "hasExample": false,
+    "hasLength": true,
+    "hasBackground": false,
+    "length": 35,
+    "family": "text",
+    "matchedCount": 3
+   },
+   "scoreTotal": 42,
+   "scoreValues": "task=17,role=0,context=9,format=16,style=0,constraint=0,example=0",
+   "rec": {
+    "img.subject": null,
+    "img.ratio": null,
+    "vid.ratio": null
+   }
+  },
+  {
+   "text": "写个周报，我这周做了三件事，语气正式一点，用表格",
+   "matched": "business",
+   "ranked": "business:2",
+   "family": "text",
+   "signals": {
+    "hasRole": false,
+    "hasAudience": false,
+    "hasFormat": true,
+    "hasTone": true,
+    "hasConstraint": false,
+    "hasExample": false,
+    "hasLength": false,
+    "hasBackground": false,
+    "length": 24,
+    "family": "text",
+    "matchedCount": 2
+   },
+   "scoreTotal": 45,
+   "scoreValues": "task=17,role=0,context=0,format=14,style=14,constraint=0,example=0",
+   "rec": {
+    "img.subject": null,
+    "img.ratio": null,
+    "vid.ratio": null
+   }
+  },
+  {
+   "text": "你是资深产品经理，帮我分析一下这个功能该不该做，给出结论",
+   "matched": "analysis",
+   "ranked": "analysis:4",
+   "family": "text",
+   "signals": {
+    "hasRole": true,
+    "hasAudience": false,
+    "hasFormat": false,
+    "hasTone": false,
+    "hasConstraint": false,
+    "hasExample": false,
+    "hasLength": false,
+    "hasBackground": false,
+    "length": 28,
+    "family": "text",
+    "matchedCount": 1
+   },
+   "scoreTotal": 29,
+   "scoreValues": "task=17,role=12,context=0,format=0,style=0,constraint=0,example=0",
+   "rec": {
+    "img.subject": "isub.product",
+    "img.ratio": null,
+    "vid.ratio": null
+   }
+  },
+  {
+   "text": "把这段话翻译成英文，不要改变原意，保持口语",
+   "matched": "general",
+   "ranked": "",
+   "family": "text",
+   "signals": {
+    "hasRole": false,
+    "hasAudience": false,
+    "hasFormat": false,
+    "hasTone": false,
+    "hasConstraint": true,
+    "hasExample": false,
+    "hasLength": false,
+    "hasBackground": false,
+    "length": 21,
+    "family": "text",
+    "matchedCount": 1
+   },
+   "scoreTotal": 30,
+   "scoreValues": "task=12,role=0,context=0,format=0,style=6,constraint=12,example=0",
+   "rec": {
+    "img.subject": null,
+    "img.ratio": null,
+    "vid.ratio": null
+   }
+  },
+  {
+   "text": "帮我总结这份会议纪要，列出待办事项，分点，每条不超过 20 字",
+   "matched": "business",
+   "ranked": "business:4,learning:2",
+   "family": "text",
+   "signals": {
+    "hasRole": false,
+    "hasAudience": false,
+    "hasFormat": true,
+    "hasTone": false,
+    "hasConstraint": false,
+    "hasExample": false,
+    "hasLength": true,
+    "hasBackground": false,
+    "length": 31,
+    "family": "text",
+    "matchedCount": 2
+   },
+   "scoreTotal": 33,
+   "scoreValues": "task=17,role=0,context=0,format=16,style=0,constraint=0,example=0",
+   "rec": {
+    "img.subject": null,
+    "img.ratio": null,
+    "vid.ratio": null
+   }
+  },
+  {
+   "text": "起个名字，要三个字的，有点古风，不要太俗",
+   "matched": "creative",
+   "ranked": "creative:2",
+   "family": "text",
+   "signals": {
+    "hasRole": false,
+    "hasAudience": false,
+    "hasFormat": false,
+    "hasTone": false,
+    "hasConstraint": true,
+    "hasExample": false,
+    "hasLength": false,
+    "hasBackground": false,
+    "length": 20,
+    "family": "text",
+    "matchedCount": 1
+   },
+   "scoreTotal": 24,
+   "scoreValues": "task=12,role=0,context=0,format=0,style=0,constraint=12,example=0",
+   "rec": {
+    "img.subject": null,
+    "img.ratio": null,
+    "vid.ratio": null
+   }
+  },
+  {
+   "text": "解释一下什么是向量数据库，讲给完全不懂技术的人听",
+   "matched": "coding",
+   "ranked": "coding:3,analysis:2,learning:2",
+   "family": "text",
+   "signals": {
+    "hasRole": false,
+    "hasAudience": true,
+    "hasFormat": false,
+    "hasTone": false,
+    "hasConstraint": false,
+    "hasExample": false,
+    "hasLength": false,
+    "hasBackground": false,
+    "length": 24,
+    "family": "text",
+    "matchedCount": 1
+   },
+   "scoreTotal": 21,
+   "scoreValues": "task=12,role=0,context=9,format=0,style=0,constraint=0,example=0",
+   "rec": {
+    "img.subject": null,
+    "img.ratio": null,
+    "vid.ratio": null
+   }
+  },
+  {
+   "text": "写一封邮件，跟客户道歉，因为我们延期交付了，语气要诚恳",
+   "matched": "writing",
+   "ranked": "writing:2,business:2",
+   "family": "text",
+   "signals": {
+    "hasRole": false,
+    "hasAudience": false,
+    "hasFormat": false,
+    "hasTone": true,
+    "hasConstraint": false,
+    "hasExample": false,
+    "hasLength": false,
+    "hasBackground": true,
+    "length": 27,
+    "family": "text",
+    "matchedCount": 2
+   },
+   "scoreTotal": 40,
+   "scoreValues": "task=17,role=0,context=9,format=0,style=14,constraint=0,example=0",
+   "rec": {
+    "img.subject": null,
+    "img.ratio": null,
+    "vid.ratio": null
+   }
+  },
+  {
+   "text": "一只戴着宇航头盔的橘猫，坐在月球表面，背景是地球，写实风格",
+   "matched": "image",
+   "ranked": "image:2",
+   "family": "image",
+   "signals": {
+    "hasSubject": true,
+    "hasComposition": false,
+    "hasLighting": false,
+    "hasStyle": true,
+    "hasColor": false,
+    "hasRatio": false,
+    "hasNegative": false,
+    "length": 29,
+    "family": "image",
+    "matchedCount": 2
+   },
+   "scoreTotal": 37,
+   "scoreValues": "subject=19,composition=0,lighting=0,style=18,color=0,negative=0",
+   "rec": {
+    "img.subject": "isub.animal",
+    "img.ratio": null,
+    "vid.ratio": null
+   }
+  },
+  {
+   "text": "画一张海报，赛博朋克风格的城市夜景，霓虹灯，雨后的街道，电影感",
+   "matched": "image",
+   "ranked": "image:6,marketing:2",
+   "family": "image",
+   "signals": {
+    "hasSubject": true,
+    "hasComposition": false,
+    "hasLighting": true,
+    "hasStyle": true,
+    "hasColor": false,
+    "hasRatio": false,
+    "hasNegative": false,
+    "length": 31,
+    "family": "image",
+    "matchedCount": 3
+   },
+   "scoreTotal": 49,
+   "scoreValues": "subject=19,composition=0,lighting=12,style=18,color=0,negative=0",
+   "rec": {
+    "img.subject": "isub.scene",
+    "img.ratio": "irat.p34",
+    "vid.ratio": null
+   }
+  },
+  {
+   "text": "生成一张产品图，香水瓶放在大理石台面上，柔光，极简，9:16 竖屏",
+   "matched": "image",
+   "ranked": "image:5",
+   "family": "image",
+   "signals": {
+    "hasSubject": true,
+    "hasComposition": false,
+    "hasLighting": true,
+    "hasStyle": false,
+    "hasColor": false,
+    "hasRatio": true,
+    "hasNegative": false,
+    "length": 33,
+    "family": "image",
+    "matchedCount": 3
+   },
+   "scoreTotal": 39,
+   "scoreValues": "subject=19,composition=4,lighting=16,style=0,color=0,negative=0",
+   "rec": {
+    "img.subject": "isub.product",
+    "img.ratio": "irat.p916",
+    "vid.ratio": "vrat.p916"
+   }
+  },
+  {
+   "text": "油画风格的山谷，黄金时刻，暖色调，宽幅",
+   "matched": "image",
+   "ranked": "image:7",
+   "family": "image",
+   "signals": {
+    "hasSubject": true,
+    "hasComposition": false,
+    "hasLighting": true,
+    "hasStyle": true,
+    "hasColor": true,
+    "hasRatio": true,
+    "hasNegative": false,
+    "length": 19,
+    "family": "image",
+    "matchedCount": 5
+   },
+   "scoreTotal": 60,
+   "scoreValues": "subject=14,composition=4,lighting=16,style=18,color=8,negative=0",
+   "rec": {
+    "img.subject": "isub.scene",
+    "img.ratio": null,
+    "vid.ratio": null
+   }
+  },
+  {
+   "text": "给我画个头像，二次元，女孩，蓝色头发，微距特写",
+   "matched": "image",
+   "ranked": "image:8",
+   "family": "image",
+   "signals": {
+    "hasSubject": true,
+    "hasComposition": true,
+    "hasLighting": false,
+    "hasStyle": true,
+    "hasColor": true,
+    "hasRatio": false,
+    "hasNegative": false,
+    "length": 23,
+    "family": "image",
+    "matchedCount": 4
+   },
+   "scoreTotal": 46,
+   "scoreValues": "subject=14,composition=12,lighting=0,style=12,color=8,negative=0",
+   "rec": {
+    "img.subject": "isub.person",
+    "img.ratio": "irat.square",
+    "vid.ratio": null
+   }
+  },
+  {
+   "text": "拍一段 15 秒的短视频，一个人走在雨夜的街道上，镜头跟着他，慢动作",
+   "matched": "video",
+   "ranked": "video:16",
+   "family": "video",
+   "signals": {
+    "hasSubject": true,
+    "hasAction": true,
+    "hasShot": true,
+    "hasMove": false,
+    "hasStyle": false,
+    "hasLighting": false,
+    "hasDuration": true,
+    "hasAudio": false,
+    "hasNegative": false,
+    "length": 34,
+    "family": "video",
+    "matchedCount": 4
+   },
+   "scoreTotal": 37,
+   "scoreValues": "subject=22,shot=13,move=2,style=0,lighting=0,audio=0,negative=0",
+   "rec": {
+    "img.subject": "isub.scene",
+    "img.ratio": null,
+    "vid.ratio": null
+   }
+  },
+  {
+   "text": "生成一段视频：无人机飞过雪山，日出，环绕运镜，配大提琴配乐",
+   "matched": "video",
+   "ranked": "video:8",
+   "family": "video",
+   "signals": {
+    "hasSubject": true,
+    "hasAction": true,
+    "hasShot": false,
+    "hasMove": true,
+    "hasStyle": false,
+    "hasLighting": false,
+    "hasDuration": false,
+    "hasAudio": true,
+    "hasNegative": false,
+    "length": 29,
+    "family": "video",
+    "matchedCount": 4
+   },
+   "scoreTotal": 39,
+   "scoreValues": "subject=14,shot=0,move=15,style=0,lighting=0,audio=10,negative=0",
+   "rec": {
+    "img.subject": "isub.scene",
+    "img.ratio": null,
+    "vid.ratio": null
+   }
+  },
+  {
+   "text": "做一个 30 秒的宣传片，多镜头，先远景再特写，一镜到底也行",
+   "matched": "video",
+   "ranked": "video:9,image:2",
+   "family": "video",
+   "signals": {
+    "hasSubject": true,
+    "hasAction": false,
+    "hasShot": true,
+    "hasMove": true,
+    "hasStyle": false,
+    "hasLighting": false,
+    "hasDuration": true,
+    "hasAudio": false,
+    "hasNegative": false,
+    "length": 30,
+    "family": "video",
+    "matchedCount": 4
+   },
+   "scoreTotal": 55,
+   "scoreValues": "subject=22,shot=13,move=14,style=6,lighting=0,audio=0,negative=0",
+   "rec": {
+    "img.subject": null,
+    "img.ratio": null,
+    "vid.ratio": "vrat.l169"
+   }
+  },
+  {
+   "text": "延时摄影，城市车流，夜景，需要背景音乐，不要人声",
+   "matched": "video",
+   "ranked": "video:3",
+   "family": "video",
+   "signals": {
+    "hasSubject": true,
+    "hasAction": false,
+    "hasShot": false,
+    "hasMove": false,
+    "hasStyle": false,
+    "hasLighting": true,
+    "hasDuration": false,
+    "hasAudio": true,
+    "hasNegative": true,
+    "length": 24,
+    "family": "video",
+    "matchedCount": 4
+   },
+   "scoreTotal": 48,
+   "scoreValues": "subject=14,shot=0,move=0,style=0,lighting=12,audio=10,negative=12",
+   "rec": {
+    "img.subject": "isub.vehicle",
+    "img.ratio": null,
+    "vid.ratio": null
+   }
+  },
+  {
+   "text": "拍个产品广告片，产品旋转，影棚光，5 秒",
+   "matched": "video",
+   "ranked": "video:5,marketing:2",
+   "family": "video",
+   "signals": {
+    "hasSubject": true,
+    "hasAction": false,
+    "hasShot": false,
+    "hasMove": false,
+    "hasStyle": true,
+    "hasLighting": true,
+    "hasDuration": true,
+    "hasAudio": false,
+    "hasNegative": false,
+    "length": 20,
+    "family": "video",
+    "matchedCount": 4
+   },
+   "scoreTotal": 40,
+   "scoreValues": "subject=14,shot=0,move=0,style=16,lighting=10,audio=0,negative=0",
+   "rec": {
+    "img.subject": "isub.product",
+    "img.ratio": null,
+    "vid.ratio": "vrat.square"
+   }
+  },
+  {
+   "text": "你好",
+   "matched": "general",
+   "ranked": "",
+   "family": "text",
+   "signals": {
+    "hasRole": false,
+    "hasAudience": false,
+    "hasFormat": false,
+    "hasTone": false,
+    "hasConstraint": false,
+    "hasExample": false,
+    "hasLength": false,
+    "hasBackground": false,
+    "length": 2,
+    "family": "text",
+    "matchedCount": 0
+   },
+   "scoreTotal": 6,
+   "scoreValues": "task=6,role=0,context=0,format=0,style=0,constraint=0,example=0",
+   "rec": {
+    "img.subject": null,
+    "img.ratio": null,
+    "vid.ratio": null
+   }
+  },
+  {
+   "text": "",
+   "matched": "general",
+   "ranked": "",
+   "family": "text",
+   "signals": {
+    "hasRole": false,
+    "hasAudience": false,
+    "hasFormat": false,
+    "hasTone": false,
+    "hasConstraint": false,
+    "hasExample": false,
+    "hasLength": false,
+    "hasBackground": false,
+    "length": 0,
+    "family": "text",
+    "matchedCount": 0
+   },
+   "scoreTotal": 0,
+   "scoreValues": "task=0,role=0,context=0,format=0,style=0,constraint=0,example=0",
+   "rec": {
+    "img.subject": null,
+    "img.ratio": null,
+    "vid.ratio": null
+   }
+  },
+  {
+   "text": "随便写点什么",
+   "matched": "general",
+   "ranked": "",
+   "family": "text",
+   "signals": {
+    "hasRole": false,
+    "hasAudience": false,
+    "hasFormat": false,
+    "hasTone": false,
+    "hasConstraint": false,
+    "hasExample": false,
+    "hasLength": false,
+    "hasBackground": false,
+    "length": 6,
+    "family": "text",
+    "matchedCount": 0
+   },
+   "scoreTotal": 11,
+   "scoreValues": "task=11,role=0,context=0,format=0,style=0,constraint=0,example=0",
+   "rec": {
+    "img.subject": null,
+    "img.ratio": null,
+    "vid.ratio": null
+   }
+  },
+  {
+   "text": "猫",
+   "matched": "general",
+   "ranked": "",
+   "family": "text",
+   "signals": {
+    "hasRole": false,
+    "hasAudience": false,
+    "hasFormat": false,
+    "hasTone": false,
+    "hasConstraint": false,
+    "hasExample": false,
+    "hasLength": false,
+    "hasBackground": false,
+    "length": 1,
+    "family": "text",
+    "matchedCount": 0
+   },
+   "scoreTotal": 6,
+   "scoreValues": "task=6,role=0,context=0,format=0,style=0,constraint=0,example=0",
+   "rec": {
+    "img.subject": "isub.animal",
+    "img.ratio": null,
+    "vid.ratio": null
+   }
+  },
+  {
+   "text": "一段很长的描述一段很长的描述一段很长的描述一段很长的描述一段很长的描述一段很长的",
+   "matched": "general",
+   "ranked": "",
+   "family": "text",
+   "signals": {
+    "hasRole": false,
+    "hasAudience": false,
+    "hasFormat": false,
+    "hasTone": false,
+    "hasConstraint": false,
+    "hasExample": false,
+    "hasLength": false,
+    "hasBackground": false,
+    "length": 140,
+    "family": "text",
+    "matchedCount": 0
+   },
+   "scoreTotal": 17,
+   "scoreValues": "task=17,role=0,context=0,format=0,style=0,constraint=0,example=0",
+   "rec": {
+    "img.subject": null,
+    "img.ratio": null,
+    "vid.ratio": null
+   }
+  }
+ ],
+ "structure": {
+  "questions": "intent dim=task multi=0 max=- type=- opts=\nrole dim=role multi=0 max=- type=- opts=role.expert,g=null,w=-,f=lhf,fu=role.stance ; role.critic,g=null,w=-,f=lhf,fu=role.stance ; role.doer,g=null,w=-,f=lhf,fu=role.stance ; role.coach,g=null,w=-,f=lhf,fu=role.stance ; role.researcher,g=null,w=-,f=lhf,fu=role.stance ; role.user,g=null,w=-,f=lhf,fu=role.stance ; role.beginner,g=null,w=-,f=lhf,fu=role.stance\nrole.stance dim=role multi=0 max=- type=- opts=stance.honest,g=null,w=-,f=lhf ; stance.balanced,g=null,w=-,f=lhf ; stance.supportive,g=null,w=-,f=lhf ; stance.challenge,g=null,w=-,f=lhf\naudience dim=context multi=0 max=- type=- opts=aud.public,g=null,w=-,f=lhf,fu=audience.term ; aud.peer,g=null,w=-,f=lhf,fu=audience.term ; aud.decision,g=null,w=-,f=lhf,fu=audience.term ; aud.client,g=null,w=-,f=lhf,fu=audience.term ; aud.student,g=null,w=-,f=lhf,fu=audience.term ; aud.self,g=null,w=-,f=lhf,fu=audience.term\naudience.term dim=context multi=0 max=- type=- opts=term.explain,g=null,w=-,f=lhf ; term.direct,g=null,w=-,f=lhf ; term.bilingual,g=null,w=-,f=lhf ; term.avoid,g=null,w=-,f=lhf\nformat dim=format multi=0 max=- type=- opts=fmt.report,g=null,w=-,f=lhf,fu=format.report.length|format.report.structure ; fmt.checklist,g=null,w=-,f=lhf,fu=format.checklist.granularity ; fmt.dialogue,g=null,w=-,f=lhf,fu=format.dialogue.length ; fmt.table,g=null,w=-,f=lhf,fu=format.table.dimension ; fmt.article,g=null,w=-,f=lhf,fu=format.article.length|format.article.structure ; fmt.code,g=null,w=-,f=lhf,fu=format.code.language|format.code.comments ; fmt.outline,g=null,w=-,f=lhf,fu=format.outline.depth ; fmt.message,g=null,w=-,f=lhf,fu=format.message.tone ; fmt.slides,g=null,w=-,f=lhf,fu=format.slides.count\nformat.report.length dim=format multi=0 max=- type=- opts=rlen.short,g=null,w=-,f=lhf ; rlen.mid,g=null,w=-,f=lhf ; rlen.long,g=null,w=-,f=lhf\nformat.report.structure dim=format multi=1 max=- type=- opts=rstr.conclusion,g=null,w=-,f=lhf ; rstr.evidence,g=null,w=-,f=lhf ; rstr.table,g=null,w=-,f=lhf ; rstr.risk,g=null,w=-,f=lhf ; rstr.action,g=null,w=-,f=lhf ; rstr.open,g=null,w=-,f=lhf\nformat.checklist.granularity dim=format multi=0 max=- type=- opts=cgran.coarse,g=null,w=-,f=lhf ; cgran.medium,g=null,w=-,f=lhf ; cgran.fine,g=null,w=-,f=lhf\nformat.dialogue.length dim=format multi=0 max=- type=- opts=dlen.short,g=null,w=-,f=lhf ; dlen.mid,g=null,w=-,f=lhf ; dlen.long,g=null,w=-,f=lhf\nformat.table.dimension dim=format multi=1 max=- type=- opts=tdim.core,g=null,w=-,f=lhf ; tdim.pro,g=null,w=-,f=lhf ; tdim.con,g=null,w=-,f=lhf ; tdim.scene,g=null,w=-,f=lhf ; tdim.cost,g=null,w=-,f=lhf ; tdim.verdict,g=null,w=-,f=lhf\nformat.article.length dim=format multi=0 max=- type=- opts=alen.short,g=null,w=-,f=lhf ; alen.mid,g=null,w=-,f=lhf ; alen.long,g=null,w=-,f=lhf\nformat.article.structure dim=format multi=0 max=- type=- opts=astr.hook,g=null,w=-,f=lhf ; astr.story,g=null,w=-,f=lhf ; astr.list,g=null,w=-,f=lhf ; astr.q,g=null,w=-,f=lhf\nformat.code.language dim=format multi=0 max=- type=- opts=clang.unspecified,g=null,w=-,f=lhf ; clang.python,g=null,w=-,f=lhf ; clang.js,g=null,w=-,f=lhf ; clang.other,g=null,w=-,f=lhf\nformat.code.comments dim=format multi=0 max=- type=- opts=ccmt.inline,g=null,w=-,f=lhf ; ccmt.after,g=null,w=-,f=lhf ; ccmt.both,g=null,w=-,f=lhf ; ccmt.none,g=null,w=-,f=lhf\nformat.outline.depth dim=format multi=0 max=- type=- opts=odep.two,g=null,w=-,f=lhf ; odep.three,g=null,w=-,f=lhf ; odep.withNote,g=null,w=-,f=lhf\nformat.message.tone dim=format multi=0 max=- type=- opts=mtone.push,g=null,w=-,f=lhf ; mtone.explain,g=null,w=-,f=lhf ; mtone.negotiate,g=null,w=-,f=lhf ; mtone.apologize,g=null,w=-,f=lhf\nformat.slides.count dim=format multi=0 max=- type=- opts=scnt.short,g=null,w=-,f=lhf ; scnt.mid,g=null,w=-,f=lhf ; scnt.long,g=null,w=-,f=lhf\ntone dim=style multi=0 max=- type=- opts=tone.pro,g=null,w=-,f=lhf ; tone.warm,g=null,w=-,f=lhf ; tone.sharp,g=null,w=-,f=lhf ; tone.humor,g=null,w=-,f=lhf ; tone.calm,g=null,w=-,f=lhf ; tone.vivid,g=null,w=-,f=lhf\ndepth dim=style multi=0 max=- type=- opts=depth.min,g=null,w=-,f=lhf,fu=depth.why ; depth.light,g=null,w=-,f=lhf,fu=depth.why ; depth.mid,g=null,w=-,f=lhf,fu=depth.why ; depth.deep,g=null,w=-,f=lhf,fu=depth.why\ndepth.why dim=style multi=0 max=- type=- opts=why.no,g=null,w=-,f=lhf ; why.key,g=null,w=-,f=lhf ; why.full,g=null,w=-,f=lhf\nconstraints dim=constraint multi=1 max=- type=- opts=con.nogreet,g=null,w=-,f=lhf ; con.norepeat,g=null,w=-,f=lhf ; con.nohallucinate,g=null,w=-,f=lhf ; con.nodigress,g=null,w=-,f=lhf ; con.nosummary,g=null,w=-,f=lhf ; con.wordlimit,g=null,w=-,f=lhf ; con.source,g=null,w=-,f=lhf ; con.noemoji,g=null,w=-,f=lhf ; con.noask,g=\"ask\",w=-,f=lhf ; con.askfirst,g=\"ask\",w=-,f=lhf\nantiAi dim=constraint multi=1 max=- type=- opts=ai.cliche,g=null,w=-,f=lhf ; ai.parallel,g=null,w=-,f=lhf ; ai.antithesis,g=null,w=-,f=lhf ; ai.rhythm,g=null,w=-,f=lhf ; ai.concrete,g=null,w=-,f=lhf ; ai.colloquial,g=null,w=-,f=lhf ; ai.noperpara,g=null,w=-,f=lhf ; ai.hedge,g=null,w=-,f=lhf ; ai.emotion,g=null,w=-,f=lhf ; ai.contrast,g=null,w=-,f=lhf\nexamples dim=example multi=0 max=- type=- opts=ex.good,g=null,w=-,f=lhf ; ex.contrast,g=null,w=-,f=lhf ; ex.none,g=null,w=-,f=lhf\nimg.subject dim=subject multi=0 max=- type=- opts=isub.person,g=null,w=-,f=lhf,fu=img.subject.person ; isub.animal,g=null,w=-,f=lhf,fu=img.subject.animal ; isub.product,g=null,w=-,f=lhf,fu=img.subject.product ; isub.scene,g=null,w=-,f=lhf ; isub.arch,g=null,w=-,f=lhf ; isub.food,g=null,w=-,f=lhf ; isub.vehicle,g=null,w=-,f=lhf ; isub.abstract,g=null,w=-,f=lhf\nimg.subject.person dim=subject multi=0 max=- type=- opts=iper.natural,g=null,w=-,f=lhf ; iper.action,g=null,w=-,f=lhf ; iper.fashion,g=null,w=-,f=lhf ; iper.anime,g=null,w=-,f=lhf ; iper.group,g=null,w=-,f=lhf\nimg.subject.animal dim=subject multi=0 max=- type=- opts=iani.cute,g=null,w=-,f=lhf ; iani.wild,g=null,w=-,f=lhf ; iani.humanized,g=null,w=-,f=lhf ; iani.art,g=null,w=-,f=lhf\nimg.subject.product dim=subject multi=0 max=- type=- opts=iprd.clean,g=null,w=-,f=lhf ; iprd.scene,g=null,w=-,f=lhf ; iprd.detail,g=null,w=-,f=lhf ; iprd.concept,g=null,w=-,f=lhf\nimg.composition dim=composition multi=0 max=- type=- opts=icomp.closeup,g=null,w=-,f=lhf,fu=img.angle ; icomp.medium,g=null,w=-,f=lhf,fu=img.angle ; icomp.wide,g=null,w=-,f=lhf,fu=img.angle ; icomp.macro,g=null,w=-,f=lhf,fu=img.angle ; icomp.centered,g=null,w=-,f=lhf,fu=img.angle ; icomp.rule,g=null,w=-,f=lhf,fu=img.angle ; icomp.blank,g=null,w=-,f=lhf,fu=img.angle\nimg.angle dim=composition multi=0 max=- type=- opts=iang.eye,g=null,w=-,f=lhf ; iang.low,g=null,w=-,f=lhf ; iang.high,g=null,w=-,f=lhf ; iang.dutch,g=null,w=-,f=lhf ; iang.pov,g=null,w=-,f=lhf ; iang.aerial,g=null,w=-,f=lhf ; iang.over,g=null,w=-,f=lhf\nimg.lighting dim=lighting multi=1 max=- type=- opts=ilt.soft,g=[\"source\",\"quality\"],w=-,f=lhf ; ilt.golden,g=[\"source\",\"time\"],w=-,f=lhf ; ilt.blue,g=[\"source\",\"time\"],w=-,f=lhf ; ilt.rim,g=null,w=-,f=lhf ; ilt.studio,g=\"source\",w=-,f=lhf ; ilt.hard,g=\"quality\",w=-,f=lhf ; ilt.neon,g=\"source\",w=-,f=lhf ; ilt.lowkey,g=\"key\",w=-,f=lhf ; ilt.highkey,g=\"key\",w=-,f=lhf ; ilt.godray,g=null,w=-,f=lhf\nimg.style dim=style multi=1 max=2 type=- opts=ist.photo,g=\"medium\",w=-,f=lhf ; ist.cinema,g=null,w=-,f=lhf ; ist.jp,g=null,w=-,f=lhf ; ist.ink,g=\"medium\",w=-,f=lhf ; ist.3d,g=\"medium\",w=-,f=lhf ; ist.cyber,g=null,w=-,f=lhf ; ist.film,g=null,w=-,f=lhf ; ist.flat,g=\"medium\",w=-,f=lhf ; ist.oil,g=\"medium\",w=-,f=lhf ; ist.concept,g=null,w=-,f=lhf ; ist.pixel,g=\"medium\",w=-,f=lhf ; ist.vapor,g=null,w=-,f=lhf\nimg.mood dim=mood multi=0 max=- type=- opts=imd.calm,g=null,w=-,f=lhf ; imd.warm,g=null,w=-,f=lhf ; imd.tense,g=null,w=-,f=lhf ; imd.lonely,g=null,w=-,f=lhf ; imd.mystery,g=null,w=-,f=lhf ; imd.energy,g=null,w=-,f=lhf ; imd.noble,g=null,w=-,f=lhf ; imd.retro,g=null,w=-,f=lhf\nimg.palette dim=color multi=0 max=- type=- opts=ipal.warm,g=null,w=-,f=lhf ; ipal.cool,g=null,w=-,f=lhf ; ipal.mono,g=null,w=-,f=lhf ; ipal.morandi,g=null,w=-,f=lhf ; ipal.contrast,g=null,w=-,f=lhf ; ipal.bw,g=null,w=-,f=lhf ; ipal.faded,g=null,w=-,f=lhf ; ipal.dual,g=null,w=-,f=lhf\nimg.ratio dim=composition multi=0 max=- type=- opts=irat.square,g=null,w=-,f=lhf ; irat.p34,g=null,w=-,f=lhf ; irat.p916,g=null,w=-,f=lhf ; irat.l169,g=null,w=-,f=lhf ; irat.p23,g=null,w=-,f=lhf ; irat.cinema,g=null,w=-,f=lhf\nimg.quality dim=quality multi=1 max=- type=- opts=iql.detail,g=null,w=-,f=lhf ; iql.dof,g=null,w=-,f=lhf ; iql.p85,g=\"lens\",w=-,f=lhf ; iql.w24,g=\"lens\",w=-,f=lhf ; iql.motion,g=null,w=-,f=lhf ; iql.grain,g=null,w=-,f=lhf ; iql.8k,g=null,w=-,f=lhf ; iql.skin,g=null,w=-,f=lhf\nimg.negative dim=negative multi=1 max=- type=- opts=ineg.quality,g=null,w=-,f=lhf ; ineg.hands,g=null,w=-,f=lhf ; ineg.face,g=null,w=-,f=lhf ; ineg.text,g=null,w=-,f=lhf ; ineg.plastic,g=null,w=-,f=lhf ; ineg.hdr,g=null,w=-,f=lhf ; ineg.clutter,g=null,w=-,f=lhf ; ineg.faceavg,g=null,w=-,f=lhf ; ineg.irrelevant,g=null,w=-,f=lhf ; ineg.artifacts,g=null,w=-,f=lhf\nvid.action dim=action multi=0 max=- type=- opts=vact.still,g=null,w=-,f=lhf ; vact.single,g=null,w=-,f=lhf ; vact.sequence,g=null,w=-,f=lhf ; vact.enter,g=null,w=-,f=lhf ; vact.express,g=null,w=-,f=lhf ; vact.interact,g=null,w=-,f=lhf\nvid.shot dim=shot multi=1 max=- type=- opts=vsh.extreme,g=null,w=-,f=lhf ; vsh.wide,g=null,w=-,f=lhf ; vsh.medium,g=null,w=-,f=lhf ; vsh.close,g=null,w=-,f=lhf ; vsh.cu,g=null,w=-,f=lhf ; vsh.macro,g=null,w=-,f=lhf\nvid.move dim=move multi=1 max=4 type=- opts=vmv.static,g=null,w=-,f=lhf ; vmv.push,g=null,w=-,f=lhf ; vmv.pull,g=null,w=-,f=lhf ; vmv.pan,g=null,w=-,f=lhf ; vmv.track,g=null,w=-,f=lhf ; vmv.orbit,g=null,w=-,f=lhf ; vmv.crane,g=null,w=-,f=lhf ; vmv.handheld,g=null,w=-,f=lhf ; vmv.drone,g=null,w=-,f=lhf ; vmv.pov,g=null,w=-,f=lhf\nvid.style dim=style multi=0 max=- type=- opts=vst.cinema,g=null,w=-,f=lhf ; vst.doc,g=null,w=-,f=lhf ; vst.ad,g=null,w=-,f=lhf ; vst.anime,g=null,w=-,f=lhf ; vst.stop,g=null,w=-,f=lhf ; vst.vhs,g=null,w=-,f=lhf ; vst.cyber,g=null,w=-,f=lhf\nvid.cut dim=cut multi=0 max=- type=- opts=vcut.cut,g=null,w=-,f=lhf ; vcut.oner,g=null,w=-,f=lhf\nvid.lighting dim=lighting multi=1 max=- type=- opts=vlt.natural,g=\"source\",w=-,f=lhf ; vlt.golden,g=\"source\",w=-,f=lhf ; vlt.night,g=\"source\",w=-,f=lhf ; vlt.studio,g=\"source\",w=-,f=lhf ; vlt.back,g=null,w=-,f=lhf ; vlt.overcast,g=\"source\",w=-,f=lhf\nvid.duration dim=duration multi=0 max=- type=- opts=vdur.s5,g=null,w=-,f=lhf ; vdur.s10,g=null,w=-,f=lhf ; vdur.s15,g=null,w=-,f=lhf ; vdur.long,g=null,w=-,f=lhf\nvid.audio dim=audio multi=1 max=- type=- opts=vaud.none,g=\"*\",w=-,f=lhf ; vaud.ambient,g=null,w=-,f=lhf ; vaud.music,g=null,w=-,f=lhf,fu=vid.bgm ; vaud.voice,g=null,w=-,f=lhf ; vaud.sfx,g=null,w=-,f=lhf\nvid.bgm dim=bgm multi=0 max=- type=- opts=vbgm.piano,g=null,w=-,f=lhf ; vbgm.cello,g=null,w=-,f=lhf ; vbgm.ambient,g=null,w=-,f=lhf ; vbgm.lofi,g=null,w=-,f=lhf ; vbgm.strings,g=null,w=-,f=lhf ; vbgm.electronic,g=null,w=-,f=lhf\nvid.arc dim=arc multi=0 max=- type=- opts=varc.rise,g=null,w=-,f=lhf ; varc.warm,g=null,w=-,f=lhf ; varc.build,g=null,w=-,f=lhf ; varc.release,g=null,w=-,f=lhf ; varc.flow,g=null,w=-,f=lhf\nvid.focus dim=focus multi=0 max=- type=- opts=vfoc.face,g=null,w=-,f=lf ; vfoc.eyes,g=null,w=-,f=lf ; vfoc.hands,g=null,w=-,f=lf ; vfoc.prop,g=null,w=-,f=lf ; vfoc.env,g=null,w=-,f=lf ; vfoc.light,g=null,w=-,f=lf\nvid.detail dim=detail multi=1 max=6 type=- opts=vdet.outfit,g=null,w=-,f=lhf ; vdet.face,g=null,w=-,f=lhf ; vdet.env,g=null,w=-,f=lhf ; vdet.air,g=null,w=-,f=lhf ; vdet.reflect,g=null,w=-,f=lhf ; vdet.prop,g=null,w=-,f=lhf ; vdet.crowd,g=null,w=-,f=lhf ; vdet.texture,g=null,w=-,f=lhf\nvid.ratio dim=shot multi=0 max=- type=- opts=vrat.l169,g=null,w=-,f=lhf ; vrat.p916,g=null,w=-,f=lhf ; vrat.square,g=null,w=-,f=lhf ; vrat.cinema,g=null,w=-,f=lhf ; vrat.p45,g=null,w=-,f=lhf\nvid.negative dim=negative multi=1 max=- type=- opts=vneg.shake,g=null,w=-,f=lhf ; vneg.face,g=null,w=-,f=lhf ; vneg.pop,g=null,w=-,f=lhf ; vneg.motion,g=null,w=-,f=lhf ; vneg.flicker,g=null,w=-,f=lhf ; vneg.text,g=null,w=-,f=lhf ; vneg.quality,g=null,w=-,f=lhf ; vneg.chaos,g=null,w=-,f=lhf",
+  "scenarios": "writing,coding,analysis,marketing,learning,business,creative,general,image,video",
+  "sectionTitles": "role,context,task,requirement,format,style,constraint,example,subject,composition,lighting,mood,color,quality,negative,action,shot,focus,move,cut,arc,detail,duration,audio",
+  "shotContent": "vsh.extreme,vsh.wide,vsh.medium,vsh.close,vsh.cu,vsh.macro",
+  "shotRole": "vsh.extreme,vsh.wide,vsh.medium,vsh.close,vsh.cu,vsh.macro",
+  "sectionExplain": "role,context,task,requirement,format,style,constraint,example,subject,composition,lighting,mood,color,quality,negative,action,shot,focus,move,cut,arc,detail,duration,audio",
+  "recommendRules": "img.subject:isub.person|isub.animal|isub.food|isub.product|isub.vehicle|isub.arch|isub.scene|isub.abstract ; img.ratio:irat.p916|irat.l169|irat.square|irat.p34 ; vid.ratio:vrat.p916|vrat.l169|vrat.square",
+  "signalLabels": "text:hasRole|hasAudience|hasFormat|hasTone|hasConstraint|hasExample|hasBackground ; image:hasSubject|hasComposition|hasLighting|hasStyle|hasColor|hasRatio|hasNegative ; video:hasSubject|hasAction|hasShot|hasMove|hasStyle|hasLighting|hasDuration|hasAudio|hasNegative",
+  "scoreItems": "task:20,role:12,context:16,format:16,style:14,constraint:12,example:10 / subject:24,composition:16,lighting:16,style:18,color:12,negative:14 / subject:22,shot:13,move:15,style:16,lighting:12,audio:10,negative:12",
+  "frameModes": "none:start+end,text:start+end,file:start+end,prev:start:prev",
+  "flows": "{\"text\":{\"core\":[\"intent\",\"role\",\"audience\",\"format\"],\"tail\":[\"tone\",\"depth\",\"constraints\",\"antiAi\",\"examples\"]},\"image\":{\"core\":[\"intent\",\"img.subject\",\"img.composition\",\"img.lighting\",\"img.style\"],\"tail\":[\"img.mood\",\"img.palette\",\"img.ratio\",\"img.quality\",\"img.negative\"]},\"video\":{\"core\":[\"intent\",\"vid.action\",\"vid.cut\",\"vid.shot\",\"vid.focus\",\"vid.move\",\"vid.style\"],\"tail\":[\"vid.arc\",\"vid.lighting\",\"vid.duration\",\"vid.detail\",\"vid.audio\",\"vid.ratio\",\"vid.negative\"]}}",
+  "sectionOrder": "role,context,task,requirement,format,style,constraint,example",
+  "visualOrder": "{\"image\":[\"task\",\"subject\",\"composition\",\"lighting\",\"mood\",\"style\",\"color\",\"quality\"],\"video\":[\"task\",\"action\",\"cut\",\"shot\",\"focus\",\"move\",\"lighting\",\"style\",\"arc\",\"duration\",\"detail\",\"audio\",\"bgm\"]}",
+  "visualJoinerKeys": "image,video"
+ },
+ "probes": "text | hasNegative=-,hasAudio=-,hasStyle=-,hasRatio=-,hasDuration=-\nimage | hasNegative=0,hasAudio=-,hasStyle=0,hasRatio=0,hasDuration=-\nvideo | hasNegative=0,hasAudio=0,hasStyle=0,hasRatio=-,hasDuration=0\ntext | hasNegative=-,hasAudio=-,hasStyle=-,hasRatio=-,hasDuration=-\nimage | hasNegative=0,hasAudio=-,hasStyle=0,hasRatio=0,hasDuration=-\nvideo | hasNegative=0,hasAudio=1,hasStyle=0,hasRatio=-,hasDuration=0\ntext | hasNegative=-,hasAudio=-,hasStyle=-,hasRatio=-,hasDuration=-\nimage | hasNegative=0,hasAudio=-,hasStyle=0,hasRatio=0,hasDuration=-\nvideo | hasNegative=0,hasAudio=1,hasStyle=0,hasRatio=-,hasDuration=1"
+}

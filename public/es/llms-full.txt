@@ -1,0 +1,95 @@
+# PromptLens
+
+> PromptLens convierte escribir un prompt en una serie de elecciones: rol, audiencia, formato, tono, restricciones. Tú decides. Admite texto, imagen y vídeo, y te entrega un prompt terminado que puedes copiar tal cual.
+
+Taller de prompts
+
+## No es que no sepas escribir prompts, es que nadie se ha sentado contigo a *desglosarlo*.
+
+PromptLens convierte escribir un prompt en una serie de elecciones: rol, audiencia, formato, tono, restricciones. Tú decides. Admite texto, imagen y vídeo, y te entrega un prompt terminado que puedes copiar tal cual.
+
+Cuenta lo que necesitas y PromptLens lo convierte en opciones concretas, capa a capa: rol, audiencia, formato, tono, restricciones. Cada decisión la tomas tú. Unas rondas después tienes un prompt completo, bien estructurado y de verdad tuyo, no una plantilla que huele a IA.
+
+[Desglosar lo que necesito](https://promptlens.example.com/login.html) [Ver primero cómo funciona](https://promptlens.example.com/es/#how)
+
+Gratis · Sin tarjeta · Texto, imagen y vídeo
+
+### Cómo funciona
+
+Son solo cuatro pasos y no hace falta que escribas ni un detalle técnico por el camino: tú solo eliges.
+
+#### Desglosar
+
+Una petición vaga se convierte en preguntas concretas: rol, audiencia, formato, tono, restricciones. Dices «escríbeme un informe semanal» y te pregunta para quién es, cuánto debe ocupar y si lleva datos.
+
+#### Elegir
+
+Cada pregunta trae varias opciones: basta con pulsar un botón. Los términos que no entiendas llevan al lado una explicación en lenguaje llano, y también ejemplos buenos y malos de en qué se convierte el prompt cuando eliges.
+
+#### Precisar
+
+Cada elección tuya trae una pregunta más fina. Si eliges «vídeo», seguirá preguntando por los planos, el movimiento de cámara, la duración y la iluminación, hasta que lo que necesitas quede dicho del todo.
+
+#### Entregar
+
+Sale un prompt terminado que puedes copiar tal cual, con la lista completa de «qué decisiones tomaste» y una nota línea a línea de «por qué está escrito así».
+
+### En qué se diferencia de «que la IA te lo escriba»
+
+Si dejas que el modelo lo haga todo, recibes lo que ha adivinado. Si lo desglosas en elecciones, recibes lo que has pedido. Por eso un resultado de PromptLens no se lee como escrito por una IA.
+
+#### Soltarle la petición a la IA
+
+- Adivina por ti la audiencia, el tono y la longitud
+- Que salga bien o mal es cuestión de suerte: la misma frase nunca sale igual
+- Si no te convence, solo puedes repetirlo, sin saber decir qué falla
+- El prompt que recibes está lleno de relleno del tipo «usa un tono profesional»
+
+#### Desglosarlo con PromptLens
+
+- Cada decisión la tomas tú; el sistema solo se encarga de hacer las preguntas correctas
+- Las mismas elecciones dan siempre la misma estructura: es reproducible
+- Si algo no te convence, «cambia la última elección» y solo se mueve esa variable
+- El resultado lleva restricciones concretas: número de palabras, formato, qué hay que incluir
+
+### Los tres casos que cubre
+
+Los tres casos se desglosan de forma totalmente distinta, así que PromptLens tiene tres flujos separados, no una misma plantilla con las palabras cambiadas.
+
+| Caso | Qué desglosa y qué produce | Compatible con |
+| --- | --- | --- |
+| Generación de texto | Copywriting, informes semanales, correos, guiones, propuestas. Se desglosa en rol, audiencia, extensión, tono, estructura, lo que hay que incluir y lo que hay que evitar, y sale en Markdown organizado por secciones. | Se puede usar directamente en ChatGPT, Claude, DeepSeek, Doubao, Kimi y otros modelos de conversación |
+| Generación de imágenes | Se desglosa en sujeto, estilo, composición, iluminación, plano, relación de aspecto y calidad de imagen; el prompt negativo va en su propio párrafo, sin mezclarse con la descripción positiva. | Se puede usar directamente en Midjourney, Stable Diffusion, Flux, Jimeng y otras herramientas de imagen |
+| Generación de vídeo | Con varios planos genera un storyboard: el contenido, el tipo de plano, el movimiento de cámara y la duración de cada plano quedan ya colocados, y el orden, los segundos y el contenido de cada casilla se pueden cambiar a mano, igual que añadir o quitar planos. | Se puede usar directamente en Kling, Runway, Jimeng y otras herramientas de vídeo |
+
+### Preguntas frecuentes
+
+#### No tengo ni idea de prompts. ¿Puedo usarlo igual?
+
+Sí. No hace falta que sepas qué es un «prompt de sistema» o el «few-shot», ni que te aprendas ninguna fórmula. Basta con responder a preguntas de cada día como «¿para quién es esto?» o «¿largo o corto?», y el sistema traduce el resto al lenguaje de los prompts.
+
+#### ¿En qué se diferencia de usar ChatGPT directamente?
+
+ChatGPT te lo escribe; PromptLens decide contigo. Con el primero recibes un texto que ha adivinado; con el segundo, el resultado de una serie de elecciones que has hecho tú, y puedes repasar cada paso y cambiarlo.
+
+#### ¿En qué herramientas puedo usar el prompt que genero?
+
+Los de texto se pegan tal cual en cualquier modelo de conversación. Los de imagen se pegan en Midjourney, Stable Diffusion, Flux o Jimeng; el prompt negativo va en un párrafo aparte, así que se pone en el campo correspondiente. Los de vídeo se pegan en Kling, Runway o Jimeng.
+
+#### ¿Puedo editar yo el storyboard del vídeo?
+
+Sí. El storyboard es la última parada manual antes de generar: puedes cambiar el orden de los planos, los segundos de cada uno y lo que se escribe en cada casilla, y también añadir o quitar planos. Cuando termines, vuelve a generar y el resultado seguirá la versión que has montado.
+
+#### ¿Por qué dos personas sacan prompts distintos de la misma frase?
+
+Porque las elecciones de en medio son distintas. La misma petición, para tu jefe o para un compañero, pide otro tono, otra longitud y otra decisión sobre si la conclusión va primero. Ahí está justo su utilidad: el resultado lleva tu criterio, no una plantilla que sirva para cualquiera.
+
+#### ¿Cuesta algo? ¿Verá alguien más lo que necesito?
+
+No hay que pagar. Tu historial de desglose se guarda en tu propia cuenta y solo lo ves tú cuando inicias sesión.
+
+### La próxima vez que te quedes en «no sé cómo decírselo a una IA», empieza por aquí.
+
+La primera ronda de preguntas te lleva unos dos minutos.
+
+[Empezar a usar PromptLens](https://promptlens.example.com/login.html)

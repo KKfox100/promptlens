@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>PromptLens · 不懂 Prompt 也能写出高质量提示词</title>
+<meta name="description" content="PromptLens 把「写 Prompt」变成一步步做选择：系统拆出角色、受众、格式、语气、约束等具体问题，每一个决定都由你来做。支持文字、图片、视频三类场景，最后给你一份可以直接复制的成品提示词。">
+<meta name="keywords" content="Prompt 生成器,提示词生成,AI 提示词,怎么写 prompt,Midjourney 提示词,视频提示词">
+<meta name="author" content="PromptLens">
+<meta name="theme-color" content="#fbf8f3">
+<meta name="robots" content="index,follow,max-image-preview:large,max-snippet:-1">
+
+<!--
+  上线前必做：把 promptlens.example.com 换成真实域名。一共 6 处 ——
+    1. 本文件 <link rel="canonical">
+    2. 本文件 og:url
+    3. 本文件 og:image / twitter:image（指向 assets/og-cover.png，域名部分同样要换）
+    4. 本文件底部 JSON-LD 里所有 @id 与 url
+    5. public/sitemap.xml 的 <loc>
+    6. public/robots.txt 的 Sitemap: 行
+  用 example.com 是故意的：它是 RFC 2606 保留给文档用的域名，
+  永远不会被解析到真实主机，所以抄漏了也只会指向空气，不会误伤别人的站。
+-->
+
+<!-- hreflang:start -->
+  <link rel="alternate" hreflang="zh-Hans" href="https://promptlens.example.com/">
+  <link rel="alternate" hreflang="zh-Hant" href="https://promptlens.example.com/zh-Hant/">
+  <link rel="alternate" hreflang="en" href="https://promptlens.example.com/en/">
+  <link rel="alternate" hreflang="ja" href="https://promptlens.example.com/ja/">
+  <link rel="alternate" hreflang="ko" href="https://promptlens.example.com/ko/">
+  <link rel="alternate" hreflang="es" href="https://promptlens.example.com/es/">
+  <link rel="alternate" hreflang="x-default" href="https://promptlens.example.com/">
+<!-- hreflang:end --><link rel="canonical" href="https://promptlens.example.com/">
+
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="PromptLens">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:title" content="PromptLens · 不懂 Prompt 也能写出高质量提示词">
+<meta property="og:description" content="把写 Prompt 变成一步步做选择，每个决定都由你来做，最后得到一份真正属于你的提示词。支持文字、图片、视频三类场景。">
+<meta property="og:url" content="https://promptlens.example.com/">
+<meta property="og:image" content="https://promptlens.example.com/assets/og-cover.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="PromptLens：把一句模糊的需求，拆成一层层可以点的选项">
+
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="PromptLens · 不懂 Prompt 也能写出高质量提示词">
+<meta name="twitter:description" content="把写 Prompt 变成一步步做选择，每个决定都由你来做。支持文字、图片、视频三类场景。">
+<meta name="twitter:image" content="https://promptlens.example.com/assets/og-cover.png">
+
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='8' fill='%231b1a17'/><circle cx='50' cy='50' r='23' fill='none' stroke='%23b33a26' stroke-width='9'/><circle cx='76' cy='24' r='8' fill='%23b33a26'/></svg>">
+<link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+<link rel="stylesheet" href="assets/css/main.css">
+</head>
+<body class="landing">
+
+<a class="skip-link" href="#main">跳到正文</a>
+
+<header class="site-head">
+  <div class="site-head-in">
+    <a class="logo" href="index.html" aria-label="PromptLens 首页">
+      <span class="logo-mark" aria-hidden="true"></span>
+      <span>PromptLens</span>
+    </a>
+
+    <nav class="site-nav" aria-label="页面导航">
+      <a href="#how">怎么用</a>
+      <a href="#why">凭什么不一样</a>
+      <a href="#scenes">支持场景</a>
+      <a href="#faq">常见问题</a>
+    </nav>
+
+    
+<!-- lang-menu:start -->
+    <details class="lang-menu">
+      <summary class="lang-menu-btn" aria-label="语言">简体中文</summary>
+      <ul class="lang-menu-list">
+        <li><a class="lang-link active" href="./" hreflang="zh-Hans" aria-current="true">简体中文</a></li>
+        <li><a class="lang-link" href="zh-Hant/" hreflang="zh-Hant">繁體中文</a></li>
+        <li><a class="lang-link" href="en/" hreflang="en">English</a></li>
+        <li><a class="lang-link" href="ja/" hreflang="ja">日本語</a></li>
+        <li><a class="lang-link" href="ko/" hreflang="ko">한국어</a></li>
+        <li><a class="lang-link" href="es/" hreflang="es">Español</a></li>
+      </ul>
+    </details>
+<!-- lang-menu:end --><a class="btn btn-primary site-cta" href="login.html">开始使用</a>
+  </div>
+</header>
+
+<main id="main">
+
+  <!-- ============ 主标题 ============ -->
+  <section class="hero">
+    <p class="hero-kicker">提示词打磨台</p>
+    <h1 class="hero-title">
+      你不是不会写 Prompt，<br>
+      只是没人陪你<em>把它拆开</em>。
+    </h1>
+    <p class="hero-def">
+      PromptLens 把「写 Prompt」变成一步步做选择：系统拆出角色、受众、格式、语气、约束等具体问题，每一个决定都由你来做。支持文字、图片、视频三类场景，最后给你一份可以直接复制的成品提示词。
+    </p>
+    <p class="hero-lede">
+      说出你的需求，PromptLens 把它拆成一层层具体的选项 —— 角色、受众、格式、语气、约束。
+      每一个决定都由你来做。几轮之后，你拿到一份结构完整、真正属于你的提示词，
+      而不是一段「AI 味」很重的模板。
+    </p>
+
+    <div class="hero-actions">
+      <a class="btn btn-primary btn-lg" href="login.html">开始拆解我的需求</a>
+      <a class="btn btn-lg" href="#how">先看看它怎么工作</a>
+    </div>
+
+    <p class="hero-note">
+      免费使用 · 不用信用卡 · 文字 / 图片 / 视频三类场景都支持
+    </p>
+  </section>
+
+  <!-- ============ 怎么用 ============ -->
+  <section class="land-section" id="how">
+    <h2 class="land-h2">它是怎么工作的</h2>
+    <p class="land-lede">
+      整个过程只有四步，中间不需要你写任何一个字的技术细节 —— 你只需要做选择。
+    </p>
+
+    <ol class="step-list">
+      <li class="step">
+        <span class="step-num">01</span>
+        <h3 class="step-title">拆解</h3>
+        <p>把一句模糊的需求，拆成角色、受众、格式、语气、约束这些具体问题。
+          你说「帮我写个周报」，它会问你是给谁看的、要多长、要不要带数据。</p>
+      </li>
+      <li class="step">
+        <span class="step-num">02</span>
+        <h3 class="step-title">选择</h3>
+        <p>每个问题都给几种方案，点按钮就行。看不懂的术语旁边有大白话解释，
+          还有正反示例告诉你选了之后 Prompt 会变成什么样。</p>
+      </li>
+      <li class="step">
+        <span class="step-num">03</span>
+        <h3 class="step-title">收敛</h3>
+        <p>你的每个选择都会引出更细的追问。选了「视频」就会接着问镜头、运镜、时长、光线，
+          直到需求被彻底说清楚。</p>
+      </li>
+      <li class="step">
+        <span class="step-num">04</span>
+        <h3 class="step-title">交付</h3>
+        <p>生成一份可以直接复制的成品 Prompt，并附上「你做过哪些决定」的完整清单，
+          以及「为什么这样写」的逐条说明。</p>
+      </li>
+    </ol>
+  </section>
+
+  <!-- ============ 凭什么不一样 ============ -->
+  <section class="land-section" id="why">
+    <h2 class="land-h2">和「让 AI 直接帮你写」有什么不同</h2>
+    <p class="land-lede">
+      让大模型一手包办，你拿到的是它猜的；拆开做选择，你拿到的是你要的。
+      这就是为什么 PromptLens 的成品读起来不像 AI 写的。
+    </p>
+
+    <div class="contrast-grid">
+      <div class="contrast-col is-them">
+        <h3 class="contrast-title">把需求丢给 AI</h3>
+        <ul>
+          <li>它替你猜受众、猜语气、猜长度</li>
+          <li>结果好坏靠运气，同一句话每次都不一样</li>
+          <li>不满意只能重说一遍，说不清哪里不对</li>
+          <li>拿到的 Prompt 里全是「请以专业的口吻」这类空话</li>
+        </ul>
+      </div>
+      <div class="contrast-col is-us">
+        <h3 class="contrast-title">用 PromptLens 拆开</h3>
+        <ul>
+          <li>每个决定都由你来做，系统只负责问对问题</li>
+          <li>同样的选择一定得到同样的结构，可复现</li>
+          <li>不满意可以「改上一处」，只动那一个变量</li>
+          <li>成品里写的是具体约束：字数、格式、必须包含什么</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 支持场景 ============ -->
+  <section class="land-section" id="scenes">
+    <h2 class="land-h2" id="scenes-title">支持哪三类场景</h2>
+    <p class="land-lede">
+      三类场景的拆解方式完全不同，所以 PromptLens 走的是三套流程，不是换个词套同一个模板。
+    </p>
+
+    <div class="scene-table-wrap">
+      <table class="scene-table" aria-labelledby="scenes-title">
+        <thead>
+          <tr>
+            <th scope="col">场景</th>
+            <th scope="col">拆解维度与产出</th>
+            <th scope="col">适用工具</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <th scope="row">文字生成</th>
+            <td data-label="拆解维度与产出">文案、周报、邮件、脚本、方案。拆到角色、受众、篇幅、语气、结构、必须包含与必须避免的内容，
+          输出按小节组织的 Markdown。</td>
+            <td class="scene-tools" data-label="适用工具">可直接用于 ChatGPT、Claude、DeepSeek、豆包、Kimi 等对话模型</td>
+          </tr>
+          <tr>
+            <th scope="row">图片生成</th>
+            <td data-label="拆解维度与产出">拆到主体、风格、构图、光线、镜头、画幅、画质，负面提示词单独成段，
+          不和正面描述混在一起。</td>
+            <td class="scene-tools" data-label="适用工具">可直接用于 Midjourney、Stable Diffusion、Flux、即梦等绘图工具</td>
+          </tr>
+          <tr>
+            <th scope="row">视频生成</th>
+            <td data-label="拆解维度与产出">多镜头时会生成一张分镜表：每个镜头的内容、景别、运镜、时长都排好，
+          而且顺序、秒数、每格内容都能手动改，镜头也能加减。</td>
+            <td class="scene-tools" data-label="适用工具">可直接用于可灵、Runway、即梦等视频工具</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ============ 常见问题 ============ -->
+  <section class="land-section" id="faq">
+    <h2 class="land-h2">常见问题</h2>
+
+    <dl class="faq-list">
+      <dt>我完全不懂 Prompt，能用吗？</dt>
+      <dd>能。你不需要知道什么是「系统提示词」「few-shot」，也不需要背任何句式。
+        你只要回答「这个给谁看」「要长还是短」这类日常问题，剩下的由系统翻译成 Prompt 语言。</dd>
+
+      <dt>它和直接用 ChatGPT 有什么区别？</dt>
+      <dd>ChatGPT 帮你写，PromptLens 陪你决定。前者你拿到的是一段它猜出来的文字；
+        后者你拿到的是你自己做了一串选择之后的结果，而且每一步都能回头看、能改。</dd>
+
+      <dt>生成的 Prompt 能用在哪些工具里？</dt>
+      <dd>文字类的可以直接贴进任何对话模型；图片类的可以贴进 Midjourney、Stable Diffusion、Flux、即梦，
+        负面提示词有单独一段，填到对应输入框即可；视频类的可以贴进可灵、Runway、即梦。</dd>
+
+      <dt>视频的分镜表能自己改吗？</dt>
+      <dd>能。分镜表是「生成前最后一道人工关」：镜头顺序、每个镜头的秒数、每一格写什么都能改，
+        也能自己加镜头、删镜头。改完再生成，成品会按你排的那一版走。</dd>
+
+      <dt>为什么同一句话，两个人用会得到不一样的 Prompt？</dt>
+      <dd>因为中间的选择不一样。同一个需求，给老板看和给同事看，语气、长度、要不要结论先行都不同。
+        这正是它有用的地方 —— 结果带着你的判断，不是一段放之四海皆准的模板。</dd>
+
+      <dt>要花钱吗？我的需求会被别人看到吗？</dt>
+      <dd>不需要付费。你的拆解记录保存在你自己的账号下，只有登录后才能看到。</dd>
+    </dl>
+  </section>
+
+  <!-- ============ 结尾行动号召 ============ -->
+  <section class="cta-band">
+    <h2 class="cta-title">下次再遇到「不知道怎么跟 AI 说」，就从这里开始。</h2>
+    <p class="cta-sub">第一轮问题大概花你两分钟。</p>
+    <a class="btn btn-primary btn-lg" href="login.html">开始使用 PromptLens</a>
+  </section>
+
+</main>
+
+<footer class="site-foot">
+  <div class="site-foot-in">
+    <span class="logo logo-sm">
+      <span class="logo-mark" aria-hidden="true"></span>
+      <span>PromptLens</span>
+    </span>
+    <p class="foot-note">把每一个决定权交回用户 —— 这是让结果不像「AI 写的」的关键。</p>
+<!-- lang-switch:start -->
+    <nav class="lang-switch" aria-label="语言">
+      <a class="lang-link active" href="./" hreflang="zh-Hans" aria-current="true">简体中文</a>
+      <a class="lang-link" href="zh-Hant/" hreflang="zh-Hant">繁體中文</a>
+      <a class="lang-link" href="en/" hreflang="en">English</a>
+      <a class="lang-link" href="ja/" hreflang="ja">日本語</a>
+      <a class="lang-link" href="ko/" hreflang="ko">한국어</a>
+      <a class="lang-link" href="es/" hreflang="es">Español</a>
+    </nav>
+<!-- lang-switch:end -->
+    <p class="foot-links">
+      <a href="login.html">登录</a>
+      <span class="foot-sep" aria-hidden="true">·</span>
+      <a href="#how">怎么用</a>
+      <span class="foot-sep" aria-hidden="true">·</span>
+      <a href="#faq">常见问题</a>
+    </p>
+  </div>
+</footer>
+
+<!--
+  结构化数据。三段放在一个 @graph 里，比三个独立的 <script> 更好维护。
+  说明一句 FAQPage：Google 从 2023 年起只对政府和医疗类站点展示 FAQ 富结果，
+  所以它不一定能换来富摘要 —— 但它本身是合法标记，别的引擎和以后的规则都可能用上，
+  而且它强制我们把问答写成机器可读的形式，对内容本身没有坏处。
+  ⚠️ 这里的问答必须和页面上看得见的文字一致，否则属于「标记与内容不符」，会被判为作弊。
+-->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "WebSite",
+      "@id": "https://promptlens.example.com/#website",
+      "url": "https://promptlens.example.com/",
+      "name": "PromptLens",
+      "alternateName": "PromptLens 提示词打磨台",
+      "description": "把写 Prompt 变成一步步做选择，每个决定都由用户来做。",
+      "inLanguage": "zh-CN"
+    },
+    {
+      "@type": "SoftwareApplication",
+      "@id": "https://promptlens.example.com/#app",
+      "name": "PromptLens",
+      "url": "https://promptlens.example.com/",
+      "applicationCategory": "DesignApplication",
+      "operatingSystem": "Web",
+      "inLanguage": "zh-CN",
+      "description": "PromptLens 把「写 Prompt」变成一步步做选择：系统拆出角色、受众、格式、语气、约束等具体问题，每一个决定都由你来做。支持文字、图片、视频三类场景，最后给你一份可以直接复制的成品提示词。",
+      "featureList": [
+        "把需求拆成一层层可点选的选项",
+        "文字 / 图片 / 视频三套独立的拆解流程",
+        "视频分镜表可人工调整顺序、时长、内容与镜头数",
+        "输出附带决定清单与逐条写法说明",
+        "负面提示词单独成段"
+      ],
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "CNY"
+      }
+    },
+    {
+      "@type": "HowTo",
+      "@id": "https://promptlens.example.com/#howto",
+      "name": "它是怎么工作的",
+      "inLanguage": "zh-CN",
+      "step": [
+        {
+          "@type": "HowToStep",
+          "position": 1,
+          "name": "拆解",
+          "text": "把一句模糊的需求，拆成角色、受众、格式、语气、约束这些具体问题。 你说「帮我写个周报」，它会问你是给谁看的、要多长、要不要带数据。"
+        },
+        {
+          "@type": "HowToStep",
+          "position": 2,
+          "name": "选择",
+          "text": "每个问题都给几种方案，点按钮就行。看不懂的术语旁边有大白话解释， 还有正反示例告诉你选了之后 Prompt 会变成什么样。"
+        },
+        {
+          "@type": "HowToStep",
+          "position": 3,
+          "name": "收敛",
+          "text": "你的每个选择都会引出更细的追问。选了「视频」就会接着问镜头、运镜、时长、光线， 直到需求被彻底说清楚。"
+        },
+        {
+          "@type": "HowToStep",
+          "position": 4,
+          "name": "交付",
+          "text": "生成一份可以直接复制的成品 Prompt，并附上「你做过哪些决定」的完整清单， 以及「为什么这样写」的逐条说明。"
+        }
+      ]
+    },
+    {
+      "@type": "FAQPage",
+      "@id": "https://promptlens.example.com/#faq",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "我完全不懂 Prompt，能用吗？",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "能。你不需要知道什么是「系统提示词」「few-shot」，也不需要背任何句式。你只要回答「这个给谁看」「要长还是短」这类日常问题，剩下的由系统翻译成 Prompt 语言。"
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "它和直接用 ChatGPT 有什么区别？",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "ChatGPT 帮你写，PromptLens 陪你决定。前者你拿到的是一段它猜出来的文字；后者你拿到的是你自己做了一串选择之后的结果，而且每一步都能回头看、能改。"
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "生成的 Prompt 能用在哪些工具里？",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "文字类的可以直接贴进任何对话模型；图片类的可以贴进 Midjourney、Stable Diffusion、Flux、即梦，负面提示词有单独一段，填到对应输入框即可；视频类的可以贴进可灵、Runway、即梦。"
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "视频的分镜表能自己改吗？",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "能。分镜表是「生成前最后一道人工关」：镜头顺序、每个镜头的秒数、每一格写什么都能改，也能自己加镜头、删镜头。改完再生成，成品会按你排的那一版走。"
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "为什么同一句话，两个人用会得到不一样的 Prompt？",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "因为中间的选择不一样。同一个需求，给老板看和给同事看，语气、长度、要不要结论先行都不同。这正是它有用的地方 —— 结果带着你的判断，不是一段放之四海皆准的模板。"
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "要花钱吗？我的需求会被别人看到吗？",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "不需要付费。你的拆解记录保存在你自己的账号下，只有登录后才能看到。"
+          }
+        }
+      ]
+    }
+  ]
+}
+</script>
+
+
+<!-- lang-boot:start -->
+<script src="assets/js/landing-lang.js" defer></script>
+<!-- lang-boot:end --></body>
+</html>

@@ -1,0 +1,95 @@
+# PromptLens
+
+> PromptLens turns writing a prompt into a series of choices — role, audience, format, tone, constraints. Every decision is yours. It supports text, image and video, and gives you a finished prompt you can copy straight away.
+
+Prompt workbench
+
+## You're not bad at writing prompts; you just never had anyone *take it apart with you*.
+
+PromptLens turns writing a prompt into a series of choices — role, audience, format, tone, constraints. Every decision is yours. It supports text, image and video, and gives you a finished prompt you can copy straight away.
+
+Say what you need, and PromptLens breaks it into concrete choices, one layer at a time — role, audience, format, tone, constraints. Every decision is yours to make. A few rounds later you have a prompt that is complete, structured and genuinely your own, rather than a template that reeks of AI.
+
+[Break down what I need](https://promptlens.example.com/login.html) [See how it works first](https://promptlens.example.com/en/#how)
+
+Free to use · No credit card · Text, image and video
+
+### How it works
+
+Four steps, and you never write a word of technical detail along the way — all you do is make choices.
+
+#### Break it down
+
+A vague request becomes concrete questions: role, audience, format, tone, constraints. Say “write me a weekly report” and it asks who it is for, how long it should be, and whether to include data.
+
+#### Choose
+
+Every question offers a few options — just click. Terms you do not know come with a plain-language note, plus good and bad examples showing what your prompt turns into once you choose.
+
+#### Narrow it down
+
+Every choice pulls in a sharper follow-up. Pick “video” and it goes on to ask about shots, camera movement, duration and lighting, until what you need is fully spelled out.
+
+#### Deliver
+
+Out comes a finished prompt you can copy straight away, plus a full list of the decisions you made and a line-by-line note on why it is written this way.
+
+### How is this different from letting AI write it for you?
+
+Hand the whole job to a model and you get its guess. Break it into choices and you get what you asked for. That is why a PromptLens result does not read like AI wrote it.
+
+#### Hand the request to AI
+
+- It guesses the audience, the tone and the length for you
+- How good it turns out is luck — the same sentence comes out different every time
+- If you are unhappy you just restate it, unable to say what went wrong
+- The prompt you get is full of filler like “write in a professional tone”
+
+#### Break it down with PromptLens
+
+- You make every decision; the system only asks the right questions
+- The same choices always produce the same structure — it is reproducible
+- Not happy? Use “Change the last choice” and only that one variable moves
+- The finished prompt states concrete constraints: word count, format, what must be included
+
+### The three scenarios it supports
+
+The three scenarios break down in completely different ways, so PromptLens runs three separate flows — not one template with the words swapped out.
+
+| Scenario | What it breaks down and outputs | Works with |
+| --- | --- | --- |
+| Text generation | Copywriting, weekly reports, emails, scripts, proposals. Broken down into role, audience, length, tone, structure, what must be included and what must be avoided, and output as Markdown organized by section. | Works directly in ChatGPT, Claude, DeepSeek, Doubao, Kimi and other chat models |
+| Image generation | Broken down into subject, style, composition, lighting, shot, aspect ratio and image quality — the negative prompt gets its own paragraph, not mixed in with the positive description. | Works directly in Midjourney, Stable Diffusion, Flux, Jimeng and other image tools |
+| Video generation | With multiple shots it lays out a storyboard: the content, shot size, camera movement and duration of every shot, and you can change the order, the seconds and each cell by hand — or add and remove shots. | Works directly in Kling, Runway, Jimeng and other video tools |
+
+### FAQ
+
+#### I know nothing about prompts. Can I still use it?
+
+Yes. You do not need to know what a “system prompt” or “few-shot” is, and there is no phrasing to memorize. You just answer everyday questions like “who is this for” and “long or short”, and the system translates the rest into prompt language.
+
+#### How is it different from just using ChatGPT?
+
+ChatGPT writes it for you; PromptLens makes the decisions with you. The first gives you a stretch of text it guessed at; the second gives you the result of a run of choices you made yourself — and you can look back at every step and change it.
+
+#### Which tools can I use the prompt in?
+
+Text prompts paste straight into any chat model. Image prompts paste into Midjourney, Stable Diffusion, Flux or Jimeng — the negative prompt has its own paragraph, so put it in the matching field. Video prompts paste into Kling, Runway or Jimeng.
+
+#### Can I edit the video storyboard myself?
+
+Yes. The storyboard is the last human checkpoint before generation: you can change the shot order, each shot's duration and what goes in each cell, and add or delete shots. Regenerate when you are done and the result follows the version you laid out.
+
+#### Why do two people get different prompts from the same sentence?
+
+Because the choices in between are different. The same request, shown to your boss or to a colleague, calls for a different tone, a different length, and a different call on whether to lead with the conclusion. That is exactly what makes it useful — the result carries your judgement, not a template that fits everyone.
+
+#### Does it cost anything? Will anyone else see what I need?
+
+No payment needed. Your breakdown history is saved under your own account and is visible only after you log in.
+
+### Next time you are stuck on “how do I say this to an AI”, start here.
+
+The first round of questions takes about two minutes.
+
+[Get started with PromptLens](https://promptlens.example.com/login.html)

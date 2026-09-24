@@ -1,0 +1,31 @@
+# PromptLens
+
+> PromptLens は Prompt を書くことを一歩ずつの選択に変えます。役割・想定読者・出力形式・トーン・制約条件をシステムが問い、決めるのはあなたです。テキスト・画像・動画に対応し、そのままコピーできる完成版プロンプトが出ます。
+
+## 仕組み
+- [仕組み](https://promptlens.example.com/ja/#how): 手順はたったの4ステップ。途中で技術的なことを一字も書く必要はありません。あなたがするのは選択だけです。
+
+## 「AI にそのまま書いてもらう」のと何が違うのか
+- [「AI にそのまま書いてもらう」のと何が違うのか](https://promptlens.example.com/ja/#why): LLM に丸ごと任せれば、返ってくるのはその推測です。分解して自分で選べば、返ってくるのはあなたが求めたものです。PromptLens の成果物が「AI が書いたもの」に読めないのは、そのためです。
+
+## 対応する3つのシーン
+- [対応する3つのシーン](https://promptlens.example.com/ja/#scenes): 3つのシーンでは分解のしかたがまったく違うので、PromptLens は3つの別々のプロセスを通ります。言葉を差し替えて同じテンプレートに当てはめる、というやり方ではありません。
+
+## よくある質問
+- [よくある質問](https://promptlens.example.com/ja/#faq)
+- Prompt がまったくわからないのですが、使えますか？
+- ChatGPT をそのまま使うのと何が違いますか？
+- 生成した Prompt はどのツールで使えますか？
+- 動画の絵コンテ表は自分で編集できますか？
+- 同じ一言なのに、二人が使うと違う Prompt になるのはなぜですか？
+- お金はかかりますか？私の要望は誰かに見られますか？
+
+## 言語
+- [简体中文](https://promptlens.example.com/)
+- [繁體中文](https://promptlens.example.com/zh-Hant/)
+- [English](https://promptlens.example.com/en/)
+- [한국어](https://promptlens.example.com/ko/)
+- [Español](https://promptlens.example.com/es/)
+
+## llms-full.txt
+- [llms-full.txt](https://promptlens.example.com/ja/llms-full.txt)

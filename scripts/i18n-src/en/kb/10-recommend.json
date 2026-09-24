@@ -1,0 +1,27 @@
+{
+  "__byPath__": {
+    "L.recommendRules": {
+      "img.subject": [
+        ["isub.person", "/portrait|person|people|\\bman\\b|\\bwoman\\b|girl|boy|young girl|young boy|elderly|\\bchild\\b|model|youth|from behind|back view|side profile/i"],
+        ["isub.animal", "/\\bcat\\b|\\bcats\\b|kitten|\\bdog\\b|\\bdogs\\b|puppy|bird|animal|pet|tiger|lion|wolf|rabbit|horse|bear|panda|fox|whale|fish|dragon|butterfly|eagle|deer/i"],
+        ["isub.food", "/food|dish|cuisine|meal|noodle|\\brice\\b|coffee|cake|dessert|fruit|drink|\\bwine\\b|\\btea\\b/i"],
+        ["isub.product", "/product|bottle|perfume|\\bwatch\\b|shoe|sneaker|bag|cosmetic|skincare|beverage|packaging|headphone|phone/i"],
+        ["isub.vehicle", "/\\bcar\\b|\\bcars\\b|mecha|spaceship|robot|motorcycle|aircraft|\\bplane\\b|tank|warship|vehicle|truck|\\btrain\\b/i"],
+        ["isub.arch", "/architecture|interior|room|living room|office|store|church|bridge|skyscraper|space design/i"],
+        ["isub.scene", "/landscape|city|mountain|\\bsea\\b|forest|desert|snow|sky|street|night view|sunrise|sunset|grassland|lake|starry|\\brain\\b/i"],
+        ["isub.abstract", "/abstract|concept|emotion|loneliness|freedom|\\btime\\b|memory|dream/i"]
+      ],
+      "img.ratio": [
+        ["irat.p916", "/9:16|vertical|phone wallpaper|short video cover|douyin|tiktok|xiaohongshu|rednote|wechat moments/i"],
+        ["irat.l169", "/16:9|landscape|wallpaper|slide|deck|video cover|desktop|website|banner/i"],
+        ["irat.square", "/1:1|square|avatar|e-commerce|logo/i"],
+        ["irat.p34", "/3:4|poster|xiaohongshu|rednote|\\bcover\\b/i"]
+      ],
+      "vid.ratio": [
+        ["vrat.p916", "/9:16|douyin|tiktok|xiaohongshu|rednote|reels|vertical|phone/i"],
+        ["vrat.l169", "/16:9|bilibili|website|youtube|landscape|promo video/i"],
+        ["vrat.square", "/1:1|square|feed|\\bads?\\b|advert/i"]
+      ]
+    }
+  }
+}

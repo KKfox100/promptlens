@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title data-i18n>工作台 · PromptLens</title>
+<meta name="description" content="PromptLens 工作台：把你的需求拆成一层层选项，逐个做决定，生成属于你的提示词。">
+<!-- 工作台在登录后面。爬虫能拿到的只有跳转和空壳，收录它等于给用户一个必然打不开的结果，
+     所以整页 noindex。真正的入口内容在首页。 -->
+<meta name="robots" content="noindex,nofollow">
+<meta name="theme-color" content="#fbf8f3">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='8' fill='%231b1a17'/><circle cx='50' cy='50' r='23' fill='none' stroke='%23b33a26' stroke-width='9'/><circle cx='76' cy='24' r='8' fill='%23b33a26'/></svg>">
+<link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+<link rel="stylesheet" href="assets/css/main.css">
+</head>
+<body>
+
+<div class="app-shell">
+
+  <!-- ================= 顶栏 ================= -->
+  <header class="topbar">
+    <a class="logo" href="app.html" style="text-decoration:none;color:inherit">
+      <span class="logo-mark" aria-hidden="true"></span>
+      <span>PromptLens</span>
+    </a>
+
+    <button class="btn btn-sm icon-toggle" id="historyToggle" title="我的记录" data-i18n-attr="title">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+      <span data-i18n>记录</span>
+    </button>
+
+    <span class="env-badge hidden" id="envBadge" data-i18n>本地演示模式</span>
+
+    <div class="topbar-spacer"></div>
+
+    <button class="btn btn-sm icon-toggle" id="previewToggle" title="实时预览" data-i18n-attr="title">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+      <span data-i18n>预览</span>
+    </button>
+
+    <button class="btn btn-sm" id="newBtn" data-i18n>+ 新的 Prompt</button>
+
+    <!-- 语言切换器挂这里。落地页那个是**真链接**（各语种有自己的静态页），
+         工作台在登录后面、noindex，客户端换一下就行。 -->
+    <span class="lang-slot" id="langSlot"></span>
+
+    <div class="user-menu">
+      <button class="user-btn" id="userBtn">
+        <span class="avatar" id="userAvatar">·</span>
+        <span id="userName" data-i18n>加载中</span>
+      </button>
+      <div class="dropdown" id="userDropdown">
+        <div class="dropdown-head">
+          <div class="name" id="ddName">—</div>
+          <div class="meta" id="ddMeta">—</div>
+        </div>
+        <button class="dropdown-item" id="exportBtn" data-i18n>导出全部记录（JSON）</button>
+        <button class="dropdown-item" id="logoutBtn" data-i18n>退出登录</button>
+      </div>
+    </div>
+  </header>
+
+  <div class="workspace">
+
+    <!-- ================= 侧栏：历史记录 ================= -->
+    <aside class="sidebar">
+      <div class="sidebar-head">
+        <span class="sidebar-title" data-i18n>我的记录</span>
+        <span class="chip tiny" id="historyCount">0</span>
+      </div>
+      <div class="sidebar-list" id="historyList">
+        <div class="sidebar-empty"><span data-i18n>还没有保存过 Prompt。</span><br><span data-i18n>完成一次拆解后会自动存进这里。</span></div>
+      </div>
+      <div class="sidebar-foot">
+        <div class="tiny muted" id="storageNote" style="line-height:1.6"></div>
+      </div>
+    </aside>
+
+    <!-- ================= 主区 ================= -->
+    <main class="main">
+      <div class="main-scroll" id="mainScroll">
+        <div class="main-inner">
+
+          <!-- ---------- 阶段一：输入 ---------- -->
+          <section id="stageInput">
+            <h1 class="stage-title" data-i18n>先把你的需求说出来</h1>
+            <p class="stage-desc" data-i18n>
+              不用讲究措辞，怎么想就怎么说。哪怕只有一句话也行 —— 接下来我们会陪你把它拆开。
+            </p>
+
+            <div class="card hero-card">
+              <div class="field">
+                <label class="field-label" for="rawPrompt" data-i18n>你的需求</label>
+                <textarea class="textarea" id="rawPrompt" rows="6"
+                  data-i18n-attr="placeholder"
+                  placeholder="例如：帮我写一篇关于远程办公的公众号文章，要给公司同事看的"></textarea>
+                <div class="field-hint">
+                  <span id="charCount">0</span> <span data-i18n>字</span> ·
+                  <span data-i18n>越具体越好，但说不清也没关系，后面的选择题会帮你补上。</span>
+                </div>
+                <div class="sample-row">
+                  <span class="tiny muted" data-i18n>试试：</span>
+                  <button type="button" class="btn btn-sm" data-sample="text" data-i18n>写一篇文章</button>
+                  <button type="button" class="btn btn-sm" data-sample="image" data-i18n>画一张图</button>
+                  <button type="button" class="btn btn-sm" data-sample="video" data-i18n>生成一段视频</button>
+                </div>
+              </div>
+
+              <div class="field" style="margin-bottom:8px">
+                <label class="field-label" data-i18n>这属于哪类任务？</label>
+                <div class="scenario-grid" id="scenarioGrid"></div>
+                <div class="field-hint" id="scenarioHint" data-i18n>系统会先自动判断，你随时可以改。</div>
+              </div>
+
+              <div class="analyze-strip hidden" id="analyzeStrip"></div>
+            </div>
+
+            <p class="tiny muted" style="line-height:1.8;margin-top:14px" data-i18n>
+              接下来会问你 5 到 7 轮，每轮 2 个问题。所有选项都用大白话写好了，
+              拿不准就选「跳过」，不影响最后的结果。
+            </p>
+          </section>
+
+          <!-- ---------- 阶段二：多轮问答 ---------- -->
+          <section id="stageRounds" class="hidden">
+            <div class="round-head">
+              <!-- data-i18n 只管**首次绘制**：问答一开跑，renderBatch 就会把它
+                   改成「第 n 轮」。少了这个标记，非简体用户在首屏会看见一句中文。 -->
+              <span class="round-badge" id="roundBadge" data-i18n>第 1 轮</span>
+              <span class="round-note" id="roundNote"></span>
+              <!-- 输入阶段的提示写着「系统会先自动判断，你随时可以改」，
+                   但进入问答阶段后场景网格整段被隐藏了。这个按钮就是「随时可以改」的兑现。 -->
+              <button type="button" class="btn btn-sm scenario-switch" id="scenarioSwitchBtn"></button>
+            </div>
+            <div class="progress-track"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
+            <div id="questionsHost"></div>
+          </section>
+
+          <!-- ---------- 阶段三：结果 ---------- -->
+          <section id="stageResult" class="hidden">
+            <div class="result-hero">
+              <h2 data-i18n>你的 Prompt 已经成型了</h2>
+              <p id="resultSummary"></p>
+              <div class="improve-grid" id="improveGrid"></div>
+            </div>
+
+            <div class="panel-section">
+              <div class="panel-label">
+                <!-- 同 roundBadge：renderResult 会用 t('最终 Prompt') /
+                     t('最终 Prompt · 分镜方案') 覆写，这里只兜首屏。 -->
+                <span id="finalTitle" data-i18n>最终 Prompt</span>
+                <span class="label-right">
+                  <span class="tiny muted" id="finalMeta"></span>
+                  <button class="btn btn-sm hidden" id="editBoardBtn" type="button" data-i18n>编辑分镜表</button>
+                </span>
+              </div>
+              <div class="prompt-notice hidden" id="promptNotice"></div>
+              <div class="final-prompt-wrap" id="finalWrap">
+                <div class="final-prompt" id="finalPrompt"></div>
+              </div>
+              <button class="prompt-expand hidden" id="promptExpand" type="button" data-i18n>
+                展开全部
+              </button>
+
+            </div>
+
+            <div class="panel-section hidden" id="negativeSection">
+              <div class="panel-label">
+                <span><span data-i18n>负面提示词</span> <span class="tiny muted" data-i18n>英文，兼容 SD / Midjourney / ComfyUI</span></span>
+                <button class="btn btn-sm" id="copyNegativeBtn" data-i18n>复制</button>
+              </div>
+              <div class="final-prompt" id="negativePrompt" style="max-height:200px"></div>
+            </div>
+
+            <div class="panel-section" style="margin-top:26px">
+              <div class="panel-label"><span data-i18n>你做出的决定</span></div>
+              <div class="card" style="overflow:hidden">
+                <table class="decision-table" id="decisionTable"></table>
+              </div>
+            </div>
+
+            <div class="panel-section">
+              <div class="panel-label"><span data-i18n>为什么这样写</span></div>
+              <div class="decision-list" id="whyList"></div>
+            </div>
+
+            <div class="panel-section">
+              <div class="panel-label"><span data-i18n>怎么用</span></div>
+              <div class="card" style="padding:16px;font-size:13.5px;color:var(--text-2);line-height:1.85" id="usageNote" data-i18n>
+                把上面这段完整贴进任意大模型的对话框即可。如果第一次结果还不满意，
+                不用重写 Prompt —— 直接告诉它「第 3 条改一下」，比重新描述一遍高效得多。
+              </div>
+            </div>
+          </section>
+
+        </div>
+      </div>
+
+      <!-- ---------- 固定底栏：随阶段切换 ---------- -->
+      <div class="main-foot">
+        <div class="main-foot-inner">
+          <!-- ---------- 粘到你的 AI ----------
+               放在**固定底栏**里，紧挨「复制 Prompt」。
+               它原来在「最终 Prompt」框下方 —— 那是个错误：prompt 框本身
+               460px 高，把工具条整个推出首屏（实测 top:1031px，视口只有
+               844px），滚到底它又跑到屏幕上方（top:-727px），用户得精确
+               滚到中段才撞得见，等于不存在。
+               它和「复制」本来就是**同一个动作的两步**（复制 → 去粘贴），
+               所以必须同屏，而不是跟着内容滚。
+
+               按当前 family 渲染（文字 / 图片 / 视频各一组），
+               点一下 = 成品进剪贴板 + 新标签打开该站。
+               悬停提示走 data-i18n-attr，不占横向空间（底栏宽度有限）。
+
+               ⚠️ 工具名一律走 t()：豆包 / 即梦 / 可灵 在各语种有**既定译法**
+               （Doubao / Jimeng·即夢·지멍 / Kling·可霊·클링），
+               照抄落地页「适用工具」列，不要另创一套。
+               ⚠️ 这份清单**会过期**，别当成常量：Sora 已于 2026-03 被
+               OpenAI 关停、Stable Diffusion 已无消费端网页版（Stability AI
+               转企业市场，DreamStudio 已下线）。加工具之前先确认站点还活着，
+               否则用户点到的是一张「该服务已不可用」的页面。 -->
+          <div class="tool-strip hidden" id="toolStrip"
+               title="点一下：复制成品 + 打开网站" data-i18n-attr="title">
+            <span class="tool-strip-title" data-i18n>粘到你的 AI</span>
+            <div class="tool-row" id="toolRow"></div>
+          </div>
+
+          <div class="action-bar" id="barInput">
+            <span class="action-hint" data-i18n>下一步：系统会把它拆成几个问题，由你逐个做选择。</span>
+            <div class="spacer"></div>
+            <button class="btn btn-primary btn-lg" id="startBtn" data-i18n>开始拆解 →</button>
+          </div>
+
+          <div class="action-bar hidden" id="barRounds">
+            <button class="btn" id="backBtn" data-i18n>← 重新输入</button>
+            <span class="action-hint" id="actionHint"></span>
+            <div class="spacer"></div>
+            <button class="btn btn-primary btn-lg" id="nextBtn" data-i18n>继续拆解 →</button>
+          </div>
+
+          <div class="action-bar hidden" id="barResult">
+            <button class="btn" id="restartBtn" data-i18n>重新开始</button>
+            <button class="btn" id="reviseBtn" data-i18n>回去改某个选择</button>
+            <div class="spacer"></div>
+            <button class="btn" id="downloadBtn" data-i18n>下载 .md</button>
+            <button class="btn btn-primary btn-lg" id="copyBtn" data-i18n>复制 Prompt</button>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <!-- ================= 右侧实时预览 ================= -->
+    <aside class="preview">
+      <div class="preview-head">
+        <span class="preview-title" data-i18n>实时预览</span>
+        <div style="flex:1"></div>
+        <span class="chip tiny" id="previewRound" data-i18n>未开始</span>
+      </div>
+      <div class="preview-body">
+
+        <div class="score-row">
+          <div class="score-card before">
+            <div class="sc-label" data-i18n>原始 Prompt</div>
+            <div class="sc-value"><span id="scoreBefore">—</span><span class="sc-unit" data-i18n="unit.score">分</span></div>
+          </div>
+          <div class="score-card after">
+            <div class="sc-label" data-i18n>当前得分</div>
+            <div class="sc-value"><span id="scoreAfter">—</span><span class="sc-unit" data-i18n="unit.score">分</span></div>
+          </div>
+        </div>
+
+        <div class="panel-section">
+          <div class="panel-label"><span data-i18n>已确定的部分</span></div>
+          <div class="decision-list" id="decisionList">
+            <div class="placeholder-note" style="padding:14px 6px" data-i18n>
+              还没有做出任何选择。
+            </div>
+          </div>
+        </div>
+
+        <div class="panel-section">
+          <div class="panel-label"><span data-i18n>正在成型的 Prompt</span></div>
+          <div class="prompt-box" id="livePreview" data-i18n>（随着你的选择，这里会实时拼出最终 Prompt）</div>
+        </div>
+
+      </div>
+    </aside>
+
+  </div>
+</div>
+
+<div class="toast-wrap" id="toastWrap"></div>
+<div id="modalHost"></div>
+
+<!-- ================= 脚本 =================
+     i18n.js 必须**第一个**，而且必须在解析期跑：
+     它会按判定出来的语种，用 document.write **同步**注入两份文案包
+     （知识库文案 + 界面文案），这样紧接着的 knowledge.js 一启动就能拿到。
+     顺序错了的表现是「knowledge.js 说文案包没装载」。
+     详细理由见 assets/js/i18n.js 顶部。 -->
+<script src="assets/js/i18n.js"></script>
+<script src="assets/js/knowledge.js"></script>
+<script src="assets/js/demos.js"></script>
+<script src="assets/js/scene.js"></script>
+<script src="assets/js/engine.js"></script>
+<script src="assets/js/api.js"></script>
+<script src="assets/js/workspace.js"></script>
+<script>
+// 静态部分的文案 + 语言切换器。幂等，可以重复调。
+// 动态渲染出来的节点由 workspace.js 自己负责（生成时就调 t()，或生成后 apply()）。
+PromptLensI18n.apply();
+PromptLensI18n.mountSwitcher(document.getElementById('langSlot'), { mode: 'select' });
+</script>
+</body>
+</html>

@@ -1,0 +1,27 @@
+{
+  "__byPath__": {
+    "L.recommendRules": {
+      "img.subject": [
+        ["isub.person", "/retrato|persona|personas|hombre|mujer|chica|chico|joven|anciano|niño|niña|modelo|silueta|perfil|espalda/i"],
+        ["isub.animal", "/gato|perro|pájaro|animal|mascota|tigre|león|lobo|conejo|caballo|oso|panda|zorro|ballena|pez|dragón|mariposa|águila|ciervo/i"],
+        ["isub.food", "/comida|platillo|plato|cocina|arroz|fideos|café|pastel|postre|fruta|bebida|vino|\\bté\\b/i"],
+        ["isub.product", "/producto|botella|perfume|reloj|zapato|bolso|cosmético|cosmética|cuidado de la piel|bebida|envase|empaque|audífonos|teléfono/i"],
+        ["isub.vehicle", "/\\bcoche\\b|\\bauto\\b|mecanismo|nave espacial|robot|moto|avión|tanque|acorazado|vehículo|camión|tren/i"],
+        ["isub.arch", "/arquitectura|interior|habitación|sala|oficina|tienda|iglesia|puente|rascacielos|diseño de espacios/i"],
+        ["isub.scene", "/paisaje|ciudad|montaña|\\bmar\\b|bosque|desierto|nieve|cielo|calle|vista nocturna|amanecer|atardecer|pradera|lago|estrellado|lluvia/i"],
+        ["isub.abstract", "/abstracto|concepto|emoción|soledad|libertad|tiempo|memoria|sueño/i"]
+      ],
+      "img.ratio": [
+        ["irat.p916", "/9:16|vertical|fondo de pantalla del móvil|portada de video corto|douyin|tiktok|xiaohongshu|rednote|momentos de wechat/i"],
+        ["irat.l169", "/16:9|horizontal|fondo de pantalla|diapositiva|presentación|escritorio|sitio web|banner|portada de video/i"],
+        ["irat.square", "/1:1|cuadrado|avatar|e-commerce|logotipo|\\blogo\\b/i"],
+        ["irat.p34", "/3:4|póster|cartel|xiaohongshu|rednote|\\bportada\\b/i"]
+      ],
+      "vid.ratio": [
+        ["vrat.p916", "/tiktok|douyin|xiaohongshu|rednote|reels|9:16|vertical|móvil|celular/i"],
+        ["vrat.l169", "/bilibili|sitio web|youtube|16:9|horizontal|video promocional/i"],
+        ["vrat.square", "/feed|anuncio|publicidad|1:1|cuadrado/i"]
+      ]
+    }
+  }
+}

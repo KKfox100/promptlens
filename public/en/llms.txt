@@ -1,0 +1,31 @@
+# PromptLens
+
+> PromptLens turns writing a prompt into a series of choices — role, audience, format, tone, constraints. Every decision is yours. It supports text, image and video, and gives you a finished prompt you can copy straight away.
+
+## How it works
+- [How it works](https://promptlens.example.com/en/#how): Four steps, and you never write a word of technical detail along the way — all you do is make choices.
+
+## How is this different from letting AI write it for you?
+- [How is this different from letting AI write it for you?](https://promptlens.example.com/en/#why): Hand the whole job to a model and you get its guess. Break it into choices and you get what you asked for. That is why a PromptLens result does not read like AI wrote it.
+
+## The three scenarios it supports
+- [The three scenarios it supports](https://promptlens.example.com/en/#scenes): The three scenarios break down in completely different ways, so PromptLens runs three separate flows — not one template with the words swapped out.
+
+## FAQ
+- [FAQ](https://promptlens.example.com/en/#faq)
+- I know nothing about prompts. Can I still use it?
+- How is it different from just using ChatGPT?
+- Which tools can I use the prompt in?
+- Can I edit the video storyboard myself?
+- Why do two people get different prompts from the same sentence?
+- Does it cost anything? Will anyone else see what I need?
+
+## Language
+- [简体中文](https://promptlens.example.com/)
+- [繁體中文](https://promptlens.example.com/zh-Hant/)
+- [日本語](https://promptlens.example.com/ja/)
+- [한국어](https://promptlens.example.com/ko/)
+- [Español](https://promptlens.example.com/es/)
+
+## llms-full.txt
+- [llms-full.txt](https://promptlens.example.com/en/llms-full.txt)

@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title data-i18n>登录 · PromptLens</title>
+<meta name="description" content="登录 PromptLens，继续打磨你的提示词。">
+<!--
+  登录页不进索引，但保留 follow。
+  noindex 是因为它对搜索者没有价值：一个空表单排在结果里，点进去的人只会立刻返回，
+  这种「点了就走」会反过来拉低整站的评价。
+  follow 是因为它链回了首页，链接权重还是让它照常传出去。
+-->
+<meta name="robots" content="noindex,follow">
+<meta name="theme-color" content="#fbf8f3">
+<!-- 这里**不写** canonical：noindex 已经说了「别收录」，再声明一个规范网址是自相矛盾的信号。
+     登录页本来就只有一个入口，没有重复内容问题。 -->
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='8' fill='%231b1a17'/><circle cx='50' cy='50' r='23' fill='none' stroke='%23b33a26' stroke-width='9'/><circle cx='76' cy='24' r='8' fill='%23b33a26'/></svg>">
+<link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+<link rel="stylesheet" href="assets/css/main.css">
+</head>
+<body>
+
+<div class="auth-shell">
+
+  <!-- ============ 左侧品牌区 ============ -->
+  <section class="auth-brand">
+    <a class="logo" href="index.html" aria-label="PromptLens 首页" data-i18n-attr="aria-label">
+      <span class="logo-mark" aria-hidden="true"></span>
+      <span>PromptLens</span>
+    </a>
+
+    <div>
+      <!-- 这句里有 <br> 和 <em>，断行位置和着重号都是设计的一部分。
+           按词拆成好几个 key 翻的话，语序一变就拼不成句子，
+           所以整句走 data-i18n-html：译文里可以带标记，语序由译者决定。 -->
+      <h1 class="auth-headline" data-i18n-html>
+        你不是不会写 Prompt，<br>
+        只是没人陪你<em>把它拆开</em>。
+      </h1>
+      <p class="auth-sub" data-i18n>
+        说出你的需求，剩下的交给我们：系统会把它拆成一层层具体的选项，
+        每一个决定都由你来做。几轮之后，你会得到一个结构完整、真正属于你的 Prompt。
+      </p>
+
+      <div class="auth-points">
+        <div class="auth-point">
+          <span class="num">1</span>
+          <span><b data-i18n>拆解</b><span data-i18n> —— 把一句模糊的需求，拆成角色、受众、格式、语气、约束等具体问题。</span></span>
+        </div>
+        <div class="auth-point">
+          <span class="num">2</span>
+          <span><b data-i18n>选择</b><span data-i18n> —— 每个问题都给出几种方案，点按钮就行，看不懂也有大白话解释。</span></span>
+        </div>
+        <div class="auth-point">
+          <span class="num">3</span>
+          <span><b data-i18n>收敛</b><span data-i18n> —— 你的每个选择都会引出更细的追问，直到需求被彻底说清楚。</span></span>
+        </div>
+        <div class="auth-point">
+          <span class="num">4</span>
+          <span><b data-i18n>交付</b><span data-i18n> —— 生成一份可复制的成品 Prompt，附上你做过哪些决定的完整清单。</span></span>
+        </div>
+      </div>
+    </div>
+
+    <p class="auth-foot">
+      <a class="auth-back" href="index.html" data-i18n>← 返回首页</a>
+      <span class="foot-sep" aria-hidden="true">·</span>
+      <span data-i18n>决定权始终在你手里 —— 这正是让结果不像「AI 写的」的关键。</span>
+    </p>
+  </section>
+
+  <!-- ============ 右侧表单区 ============ -->
+  <section class="auth-panel">
+    <div class="lang-corner" id="langSlot"></div>
+    <div class="auth-form-wrap">
+      <h2 class="auth-title" id="formTitle" data-i18n>欢迎回来</h2>
+      <p class="auth-desc" id="formDesc" data-i18n>登录后继续你上次的 Prompt 打磨。</p>
+
+      <div class="tabs">
+        <button class="tab active" data-tab="login" data-i18n>登录</button>
+        <button class="tab" data-tab="register" data-i18n>注册</button>
+      </div>
+
+      <div class="form-alert" id="formAlert"></div>
+
+      <form id="authForm" autocomplete="on" novalidate>
+        <div class="field">
+          <label class="field-label" for="username" data-i18n>用户名</label>
+          <input class="input" id="username" name="username" type="text" data-i18n-attr="placeholder" placeholder="2-20 位中文、字母或数字" autocomplete="username" required>
+        </div>
+
+        <div class="field" id="displayNameField" style="display:none">
+          <label class="field-label" for="displayName"><span data-i18n>昵称</span> <span class="muted tiny" data-i18n>（选填）</span></label>
+          <input class="input" id="displayName" name="displayName" type="text" data-i18n-attr="placeholder" placeholder="别人怎么称呼你" autocomplete="nickname">
+        </div>
+
+        <div class="field">
+          <label class="field-label" for="password" data-i18n>密码</label>
+          <input class="input" id="password" name="password" type="password" data-i18n-attr="placeholder" placeholder="至少 6 位" autocomplete="current-password" required>
+        </div>
+
+        <button class="btn btn-primary btn-lg btn-block" id="submitBtn" type="submit" data-i18n>登录</button>
+      </form>
+
+      <p class="auth-switch" id="switchHint"></p>
+    </div>
+  </section>
+
+</div>
+
+<div class="toast-wrap" id="toastWrap"></div>
+
+<!-- data-needs="ui" —— 这一页用不到知识库文案（62KB），只装界面文案。
+     不写这个属性就是两份都装（工作台要）。 -->
+<script src="assets/js/i18n.js" data-needs="ui"></script>
+<script src="assets/js/api.js"></script>
+<script>
+(function () {
+  'use strict';
+
+  var API = window.PromptLensAPI;
+  var I18n = window.PromptLensI18n;
+  var T = I18n.t;
+  var mode = 'login';
+
+  // 本地文件方式打开时，用相对路径跳转
+  var APP_URL = API.isLocalMode ? 'app.html' : '/app.html';
+
+  var el = {
+    tabs: document.querySelectorAll('.tab'),
+    title: document.getElementById('formTitle'),
+    desc: document.getElementById('formDesc'),
+    alert: document.getElementById('formAlert'),
+    form: document.getElementById('authForm'),
+    username: document.getElementById('username'),
+    displayName: document.getElementById('displayName'),
+    displayNameField: document.getElementById('displayNameField'),
+    password: document.getElementById('password'),
+    submit: document.getElementById('submitBtn'),
+    switchHint: document.getElementById('switchHint'),
+    toastWrap: document.getElementById('toastWrap'),
+  };
+
+  function toast(message, kind) {
+    var node = document.createElement('div');
+    node.className = 'toast' + (kind ? ' ' + kind : '');
+    node.textContent = message;
+    el.toastWrap.appendChild(node);
+    setTimeout(function () {
+      node.style.transition = 'opacity .3s, transform .3s';
+      node.style.opacity = '0';
+      node.style.transform = 'translateY(8px)';
+      setTimeout(function () { node.remove(); }, 320);
+    }, 2600);
+  }
+
+  function showAlert(message, kind) {
+    el.alert.className = 'form-alert show ' + (kind || 'error');
+    el.alert.textContent = message;
+  }
+
+  function clearAlert() {
+    el.alert.className = 'form-alert';
+    el.alert.textContent = '';
+  }
+
+  /**
+   * 「还没有账号？立即注册」这种「一句话里嵌一个链接」的写法。
+   * 不拼字符串、而是把链接当参数塞进模板（{link}），
+   * 这样译者能自己决定链接在句子的哪个位置 —— 语序各语种不同。
+   * t() 的插值走的是 replace 回调，所以变量里的 $& 之类不会被当成分组引用。
+   */
+  function switchHintHtml(question, action) {
+    return T(question + '{link}', {
+      link: '<a href="#" id="switchLink">' + T(action) + '</a>',
+    });
+  }
+
+  function setMode(next) {
+    mode = next;
+    clearAlert();
+
+    el.tabs.forEach(function (tab) {
+      tab.classList.toggle('active', tab.dataset.tab === mode);
+    });
+
+    if (mode === 'login') {
+      el.title.textContent = T('欢迎回来');
+      el.desc.textContent = T('登录后继续你上次的 Prompt 打磨。');
+      el.submit.textContent = T('登录');
+      el.displayNameField.style.display = 'none';
+      el.password.setAttribute('autocomplete', 'current-password');
+      el.switchHint.innerHTML = switchHintHtml('还没有账号？', '立即注册');
+    } else {
+      el.title.textContent = T('创建账号');
+      el.desc.textContent = T('注册后，你的每一次拆解和选择都会被保存下来。');
+      el.submit.textContent = T('注册并开始');
+      el.displayNameField.style.display = '';
+      el.password.setAttribute('autocomplete', 'new-password');
+      el.switchHint.innerHTML = switchHintHtml('已经有账号了？', '去登录');
+    }
+
+    bindSwitchLink();
+  }
+
+  function bindSwitchLink() {
+    var link = document.getElementById('switchLink');
+    if (!link) return;
+    link.addEventListener('click', function (e) {
+      e.preventDefault();
+      setMode(mode === 'login' ? 'register' : 'login');
+    });
+  }
+
+  el.tabs.forEach(function (tab) {
+    tab.addEventListener('click', function () { setMode(tab.dataset.tab); });
+  });
+
+  el.form.addEventListener('submit', async function (e) {
+    e.preventDefault();
+    clearAlert();
+
+    var username = el.username.value.trim();
+    var password = el.password.value;
+    var displayName = el.displayName.value.trim();
+
+    if (!username) return showAlert(T('请输入用户名'));
+    if (!password) return showAlert(T('请输入密码'));
+    if (mode === 'register' && password.length < 6) return showAlert(T('密码至少 6 位'));
+
+    el.submit.disabled = true;
+    var original = el.submit.textContent;
+    el.submit.innerHTML = '<span class="spinner"></span> ' + T('处理中…');
+
+    try {
+      if (mode === 'login') {
+        await API.login({ username: username, password: password });
+      } else {
+        await API.register({ username: username, password: password, displayName: displayName });
+      }
+      showAlert(T('成功，正在进入工作台…'), 'success');
+      setTimeout(function () { location.href = APP_URL; }, 380);
+    } catch (err) {
+      showAlert(err.message || T('操作失败，请重试'));
+      el.submit.disabled = false;
+      el.submit.textContent = original;
+    }
+  });
+
+  // 已登录则直接进入工作台
+  API.me().then(function (res) {
+    if (res && res.user) location.href = APP_URL;
+  }).catch(function () { /* 未登录，正常停留 */ });
+
+  // 静态文案 + 切换器。setMode 里写的那些是「带状态」的文案，
+  // 要在 setMode 之后调 apply 才不会被覆盖掉 —— 所以顺序是：先 setMode，再 apply。
+  I18n.mountSwitcher(document.getElementById('langSlot'), { mode: 'select' });
+  setMode('login');
+  I18n.apply();
+})();
+</script>
+
+</body>
+</html>
