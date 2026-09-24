@@ -112,7 +112,29 @@ node server.js &                     # 下面这些需要服务在跑
 node scripts/browser-check.js        # 界面：485 条（含手机/iPad/极窄屏）
 node scripts/browser-check-file.js   # file:// 数据层：16 条
 node scripts/check-landing-live.js   # 落地页实机：637 条（六语种 × 六种宽度）
+node scripts/check-api.js            # 接口契约：50 条（打 Node 后端）
 ```
+
+### 接口契约：两份实现靠它对齐
+
+`server.js`（本地）与 `worker/index.js`（线上）是**同一套接口的两个实现**。
+两边分叉的症状是「本地好好的、线上不对」—— 而两边各自的测试都不会红，
+因为它们各测各的。
+
+`check-api.js` 只认**接口契约**（响应信封、状态码、字段形状、Cookie 属性、
+静态路由规则），不认文案；打哪个后端由 `BASE` 决定：
+
+```bash
+BASE=http://127.0.0.1:8787  node scripts/check-api.js   # 本地 Worker
+NODE_TLS_REJECT_UNAUTHORIZED=0 \
+  BASE=https://127.0.0.1:8790 node scripts/check-api.js # https 实例
+```
+
+**两个协议都要跑。** `Secure` 那条断言是**跟着协议变**的：https 下必须带、
+http 下必须没有 —— 各只覆盖一边。想造 https 环境：
+`npx wrangler dev --local-protocol https --port 8790`。
+
+⚠️ 它会往库里写一个 `apitest…` 账号（记录会删，账号留着）。**别拿它打线上。**
 
 **变异测试** —— 故意把源码改坏，确认断言真的会红：
 

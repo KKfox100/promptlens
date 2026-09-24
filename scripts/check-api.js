@@ -23,6 +23,8 @@
  */
 
 const BASE = process.env.BASE || 'http://127.0.0.1:5178';
+/** 打的是 https 还是 http —— 决定会话 Cookie **该不该**带 Secure。 */
+const IS_HTTPS = new URL(BASE).protocol === 'https:';
 
 let pass = 0;
 const failures = [];
@@ -93,6 +95,17 @@ async function req(path, opts) {
   check('Set-Cookie 带 HttpOnly', /HttpOnly/i.test(r.setCookie), r.setCookie);
   check('Set-Cookie 带 SameSite=Lax', /SameSite=Lax/i.test(r.setCookie), r.setCookie);
   check('Set-Cookie 带 Max-Age', /Max-Age=\d+/.test(r.setCookie), r.setCookie);
+  /* `Secure` 必须**跟着请求协议走**，而且两个方向都得断言 ——
+     只测一边等于没测：本地是 http、线上是 https，各只会走到一边。
+       · https 下**必须**有：否则会话 Cookie 会明文附到 http 请求上；
+       · http 下**必须**没有：否则浏览器直接拒绝存它，症状是
+         「登录接口返回 200、之后一直显示未登录」，而且**不报任何错**。
+     注意：Node 的 fetch 配手动 Cookie 头**绕过了**浏览器的 cookie 策略，
+     所以这个 bug 在脚本里本来不会自己暴露 —— 必须显式断言。 */
+  check(IS_HTTPS
+    ? 'Set-Cookie 带 Secure（https 下必须有）'
+    : 'Set-Cookie 不带 Secure（http 下必须没有）',
+  IS_HTTPS ? /;\s*Secure/i.test(r.setCookie) : !/;\s*Secure/i.test(r.setCookie), r.setCookie);
 
   r = await req('/api/auth/me');
   check('带 Cookie 探测会话 → 拿到同一个用户',

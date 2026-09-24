@@ -37,10 +37,20 @@ run_worker_first = true
 # 建库：npx wrangler d1 create promptlens
 #       它会把 database_id 打出来，粘到下面（**这个 id 不是密钥**，可以入库）。
 # 建表：npx wrangler d1 execute promptlens --remote --file=worker/schema.sql
+#
+# ⚠️ 改 database_id 会**静默地**把本地库换成一个空的。
+#    本地 D1 的状态文件是按这个 id 命名存的（.wrangler/state/v3/d1/…），
+#    换了 id 就指向另一个文件，于是「表全没了」。而报错只说
+#      D1_ERROR: no such table: users
+#    看着像 schema 写错了。改完记得重新建本地表：
+#      npx wrangler d1 execute promptlens --local --file=worker/schema.sql
+#
+# ⚠️ `wrangler d1 list` 里的 num_tables 是**过时**的，建完表它可能仍显示 0。
+#    要确认表在不在，直接查：SELECT name FROM sqlite_master WHERE type='table'
 [[d1_databases]]
 binding = "DB"
 database_name = "promptlens"
-database_id = "00000000-0000-0000-0000-000000000000"
+database_id = "2cf68012-a7d3-4d5f-9e3d-ca4755110b05"
 
 # ---- 日志 ----------------------------------------------------------
 # 线上排查用：`npx wrangler tail` 能看到 console.error 的输出。
