@@ -3,13 +3,13 @@
 > PromptLens convierte escribir un prompt en una serie de elecciones: rol, audiencia, formato, tono, restricciones. Tú decides. Admite texto, imagen y vídeo, y te entrega un prompt terminado que puedes copiar tal cual.
 
 ## Cómo funciona
-- [Cómo funciona](https://promptlens.example.com/es/#how): Son solo cuatro pasos y no hace falta que escribas ni un detalle técnico por el camino: tú solo eliges.
+- [Cómo funciona](https://promptlens.example.com/es/#how)
 
 ## En qué se diferencia de «que la IA te lo escriba»
-- [En qué se diferencia de «que la IA te lo escriba»](https://promptlens.example.com/es/#why): Si dejas que el modelo lo haga todo, recibes lo que ha adivinado. Si lo desglosas en elecciones, recibes lo que has pedido. Por eso un resultado de PromptLens no se lee como escrito por una IA.
+- [En qué se diferencia de «que la IA te lo escriba»](https://promptlens.example.com/es/#why)
 
 ## Los tres casos que cubre
-- [Los tres casos que cubre](https://promptlens.example.com/es/#scenes): Los tres casos se desglosan de forma totalmente distinta, así que PromptLens tiene tres flujos separados, no una misma plantilla con las palabras cambiadas.
+- [Los tres casos que cubre](https://promptlens.example.com/es/#scenes)
 
 ## Preguntas frecuentes
 - [Preguntas frecuentes](https://promptlens.example.com/es/#faq)

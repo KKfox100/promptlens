@@ -3,13 +3,13 @@
 > PromptLens turns writing a prompt into a series of choices — role, audience, format, tone, constraints. Every decision is yours. It supports text, image and video, and gives you a finished prompt you can copy straight away.
 
 ## How it works
-- [How it works](https://promptlens.example.com/en/#how): Four steps, and you never write a word of technical detail along the way — all you do is make choices.
+- [How it works](https://promptlens.example.com/en/#how)
 
 ## How is this different from letting AI write it for you?
-- [How is this different from letting AI write it for you?](https://promptlens.example.com/en/#why): Hand the whole job to a model and you get its guess. Break it into choices and you get what you asked for. That is why a PromptLens result does not read like AI wrote it.
+- [How is this different from letting AI write it for you?](https://promptlens.example.com/en/#why)
 
 ## The three scenarios it supports
-- [The three scenarios it supports](https://promptlens.example.com/en/#scenes): The three scenarios break down in completely different ways, so PromptLens runs three separate flows — not one template with the words swapped out.
+- [The three scenarios it supports](https://promptlens.example.com/en/#scenes)
 
 ## FAQ
 - [FAQ](https://promptlens.example.com/en/#faq)

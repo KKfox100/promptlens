@@ -886,6 +886,11 @@ a:hover { text-decoration: underline; text-underline-offset: 2px; }
   pointer-events: none;
 }
 .scenario-btn {
+  /* <button> 不写 color 的话，计算值是 UA 的 ButtonText = 纯黑 rgb(0,0,0)。
+     现在被 .s-num / .s-name / .s-desc 三条子规则盖着看不见，
+     但只要有人往按钮里直接放一个裸文本节点，全站唯一的纯黑就冒出来了。
+     按「全站不用纯黑」的约定显式钉上。 */
+  color: var(--ink);
   display: flex;
   flex-direction: column;
   gap: 2px;
@@ -2082,13 +2087,6 @@ body.landing {
   padding-left: 16px;
   border-left: 3px solid var(--primary);
 }
-.hero-lede {
-  font-size: 16px;
-  color: var(--ink-2);
-  line-height: 1.85;
-  max-width: 40em;
-  margin: 0 0 30px;
-}
 .hero-actions {
   display: flex;
   flex-wrap: wrap;
@@ -2101,6 +2099,46 @@ body.landing {
   letter-spacing: .04em;
   color: var(--ink-3);
   margin: 20px 0 0;
+}
+
+/* ---------- 进场：分节进入视口时淡入 + 上移 ----------
+   ------------------------------------------------------------------
+   为什么用 `animation-timeline: view()` 而不是 IntersectionObserver：
+
+     · **零脚本**。落地页的可用性不押在 JS 上 —— 和语言检测同一条原则。
+       少了「先亮一次再消失」的闪烁：状态由滚动位置算出来，不需要抢在首帧前
+       加类，也就没有「脚本没加载 / 报错 → 内容永远藏在 opacity:0 里」这个
+       最坏结局。
+     · `@supports` 不成立时（Firefox 目前还没有）整段失效，
+       页面就是一张普通静态页，**不会留下中间态**。
+
+   ⚠️ 只用 `transform` 和 `opacity`，两者都能走合成层；
+   不要在这里加 `filter` / `box-shadow` 动画，那会每帧重绘。
+
+   ⚠️ 门控是 `prefers-reduced-motion`，和全站其它动效同一条。
+   打印时也关掉 —— 纸上没有滚动，藏在 opacity:0 里就是真的没了。 */
+@keyframes pl-rise {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: none; }
+}
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .reveal {
+      animation: pl-rise linear both;
+      animation-timeline: view();
+      /* 用**固定距离**而不是百分比。实测过：`cover 20%` 是相对
+         「元素高 + 视口高」算的，于是**视口越高，动画拖得越长** ——
+         把视口拉成整页高（截图工具、爬虫展开视口）时，
+         最后一个分节的标题只走到 opacity 0.659，等于内容半透明地交出去。
+         `entry 0% → entry 160px` 是「元素顶边进视口下沿之后 160px 内走完」，
+         和视口多高无关：正常视口下是 160px 的进场距离，
+         展开视口下早已越过终点、直接停在终态。 */
+      animation-range: entry 0% entry 160px;
+    }
+  }
+}
+@media print {
+  .reveal { animation: none !important; }
 }
 
 /* ---------- 分节 ---------- */
@@ -2335,6 +2373,9 @@ body.landing {
   letter-spacing: .04em;
   margin: 0;
 }
+/* 三个链接之间用间距分隔，不用中点 —— 一行最多一个中点，
+   三个链接夹两个就是两个。视觉间距和原来一致（原来每个分隔符左右各 7px）。 */
+.foot-links a + a { margin-left: 14px; }
 .foot-sep { color: var(--rule-strong); margin: 0 7px; }
 
 /* 登录页页脚里的「返回首页」，以及 logo 变链接之后要去掉的下划线/蓝紫色 */

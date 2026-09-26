@@ -111,15 +111,16 @@ samples/                    示例素材
 
 ```bash
 node scripts/test-engine.js          # 引擎：126 条
-node scripts/check-landing.js        # 落地页静态：263 条
+node scripts/check-landing.js        # 落地页静态：305 条（含 anti-slop 的静态规则）
 node scripts/check-llmo.js           # 给大模型读的摘要：170 条
 node scripts/check-locale-parity.js  # 六语种行为一致性
 node scripts/check-locale-corpus.js  # 六语种语料自检
 
 node server.js &                     # 下面这些需要服务在跑
-node scripts/browser-check.js        # 界面：573 条（含手机/iPad/极窄屏/免注册模式/顶栏预算）
+node scripts/browser-check.js        # 界面：574 条（含手机/iPad/极窄屏/免注册模式/顶栏预算）
 node scripts/browser-check-file.js   # file:// 数据层：16 条
-node scripts/check-landing-live.js   # 落地页实机：637 条（六语种 × 六种宽度）
+node scripts/check-landing-live.js   # 落地页实机：757 条（六语种 × 六种宽度，含纯黑 / 首屏视口 / 页脚间距）
+node scripts/check-reveal.js         # 分节进场层：11 条（⚠️ 这个脚本**故意不压平动画**）
 node scripts/check-api.js            # 接口契约：50 条（打 Node 后端）
 ```
 
@@ -149,10 +150,10 @@ http 下必须没有 —— 各只覆盖一边。想造 https 环境：
 ```bash
 node scripts/check-mutation-anchors.js   # 先做 5 秒静态预检（锚点还在不在）
 node scripts/mutation-check.js           # 引擎：48 条
-node scripts/mutation-check-ui.js        # 界面：32 条（约 2 小时，需先停掉 5178）
+node scripts/mutation-check-ui.js        # 界面：36 条（约 2 小时，需先停掉 5178）
 
 # 只跑一段（1 起的序号，含首含尾）—— 改完一小块时不必等全套
-MUT_FROM=31 MUT_TO=32 PORT=5179 node scripts/mutation-check-ui.js
+MUT_FROM=33 MUT_TO=36 PORT=5179 node scripts/mutation-check-ui.js
 ```
 
 ⚠️ 用 `PORT=5179` 绕开 5178 上那个**不是自己起的**服务，比去杀它安全
@@ -238,3 +239,13 @@ npx wrangler d1 execute promptlens --local --file=worker/schema.sql
    **装饰可以藏，导航不行。** 修法是新增 `.auth-back-narrow` 挂在表单区顶部、
    只在 ≤980 显示（与第 6 条同一招），并且**两个方向各一条断言**：
    窄屏那份在、宽屏那份不多。
+8. **改首屏 / 配色 / 文案排版前，先看 `.workbuddy-ai/memory/topics/visual-system.md`
+   里那份 anti-slop 清单。** 它是照 `taste-skill` 的 Pre-Flight Check 落成的，
+   其中四条已经是断言：首屏 CTA 下方最多一个块且必须可点、一行最多一个中点、
+   没有元素的计算色是纯黑、首屏整节落在初始视口内。
+   ⚠️ 有**两条规则故意没照搬**（破折号 `—` 全禁、首屏最多 4 个文本块），
+   理由都写在那个文件里 —— 别当成漏做，那是有意让步。
+   ⚠️ 「纯黑」只在**用户看得见的元素**上量（排除 `<html>` 和 `<head>` 里的）：
+   文档根的计算 color 是 CSS 初始值 `rgb(0,0,0)`，算进去这条就永远是红的。
+   ⚠️ 中点那条**不能**用 `visible(html)` 分行（它把换行压成空格，整页变成一行），
+   要按块级元素切、且内联标签不能当切点。

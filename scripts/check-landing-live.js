@@ -28,6 +28,7 @@
 
 const path = require('path');
 const { launch, sleep } = require('C:/Users/jack/.workbuddy-ai/skills/cdp-browser-e2e/templates/cdp-client.js');
+const { quietMotion } = require('./lib/quiet-motion');
 
 const BASE = process.env.BASE || 'http://127.0.0.1:5178';
 /* 调试端口交给 Chrome 自己挑（见 cdp-client.js 里 port 的注释）。
@@ -166,6 +167,13 @@ async function openAndSettle(cdp, url, ms) {
 
 (async () => {
   const cdp = await launch({ width: 1440, height: 900 });
+
+  /* 落地页分节现在挂了一层 CSS 进场（`animation-timeline: view()`，见 main.css）。
+     量计算样式 / 拍图之前先把它压平 —— 否则量到的是**动画中间态**：
+     09-26 实测滚到位的那一刻 `.cta-title` 的 opacity 可能停在 0.69，
+     报出来像「文案没显示」，其实是探针自己来早了。
+     和 browser-check.js 的 settle() 是同一件事，共用 scripts/lib/quiet-motion.js。 */
+  await quietMotion(cdp);
   try {
     /* setBrowserLang 用 Page.addScriptToEvaluateOnNewDocument，这个域要先开。 */
     await cdp.send('Page.enable');
@@ -197,6 +205,8 @@ async function openAndSettle(cdp, url, ms) {
           const r = nav ? nav.getBoundingClientRect() : null;
           const active = nav ? nav.querySelector('a.lang-link.active') : null;
           const h1 = document.querySelector('.hero-title');
+          const heroSec = document.querySelector('.hero');
+          const actSec = document.querySelector('.hero-actions');
           const hrefs = links.map((a) => a.getAttribute('href'));
           /* 页头的语言菜单 */
           const menu = document.querySelector('details.lang-menu');
@@ -251,6 +261,51 @@ async function openAndSettle(cdp, url, ms) {
             menuActivePath: mAct ? new URL(mAct.getAttribute('href'), location.href).pathname : null,
             h1: h1 ? h1.innerText.replace(/\\s+/g, ' ').trim().slice(0, 40) : '',
             docH: de.scrollHeight,
+            /* ---- anti-slop 体检（taste-skill Pre-Flight 的机械化部分）----
+               ① 纯黑：只看**用户看得见**的元素（有可见盒子、且不在 <head> 里）。
+                  文档根 <html> 的计算 color 是 CSS 初始值 rgb(0,0,0)，
+                  而所有可见文字都由 <body> 定的色继承下来 —— 它自己不画字，
+                  是个惰性值，算进去这条就永远是红的。
+                  真正的信号是「某个可见元素没人给它定色」，
+                  典型形状就是 <button> 不写 color，落到 UA 的 ButtonText。 */
+            pureBlack: (() => {
+              const SKIP = { HTML: 1, HEAD: 1, META: 1, TITLE: 1, LINK: 1, STYLE: 1, SCRIPT: 1, BASE: 1, NOSCRIPT: 1, TEMPLATE: 1 };
+              const bad = [];
+              for (const el of document.querySelectorAll('*')) {
+                if (SKIP[el.tagName]) continue;
+                if (!el.getClientRects().length) continue;
+                const cs = getComputedStyle(el);
+                const who = el.tagName.toLowerCase() + '.' + (typeof el.className === 'string' ? el.className : '');
+                if (cs.color === 'rgb(0, 0, 0)') bad.push('color ' + who);
+                if (cs.backgroundColor === 'rgb(0, 0, 0)') bad.push('bg ' + who);
+              }
+              return bad;
+            })(),
+            /* ② 首屏在初始视口内。量**整节**而不是只量 CTA ——
+               规则原话是「hero must fit the initial viewport」。 */
+            heroBottom: heroSec ? Math.round(heroSec.getBoundingClientRect().bottom) : -1,
+            actBottom: actSec ? Math.round(actSec.getBoundingClientRect().bottom) : -1,
+            titleLines: (() => {
+              const t = document.querySelector('.hero-title');
+              if (!t) return -1;
+              const lh = parseFloat(getComputedStyle(t).lineHeight);
+              return lh ? Math.round(t.getBoundingClientRect().height / lh) : -1;
+            })(),
+            innerH: window.innerHeight,
+            /* 页脚三个链接之间的水平间距。原来它们靠两个中点分隔，
+               改成 margin 之后**那条规则一旦被删就全挤在一起** ——
+               中点那条断言管不到（它只管「有没有两个中点」）。
+               只比同一行上的相邻两个（换行之后 left 会回到行首，差值是负的）。 */
+            footGaps: (() => {
+              const as = [...document.querySelectorAll('.foot-links a')];
+              const gaps = [];
+              for (let i = 1; i < as.length; i += 1) {
+                const a = as[i - 1].getBoundingClientRect();
+                const b = as[i].getBoundingClientRect();
+                if (Math.abs(a.top - b.top) < 2) gaps.push(Math.round(b.left - a.right));
+              }
+              return gaps;
+            })(),
           };
         })())`));
 
@@ -271,6 +326,39 @@ async function openAndSettle(cdp, url, ms) {
           m.swBottom + ' / ' + m.docH);
         check(at + ' 当前语种那一项看得出和别的项不一样（否则用户不知道自己在哪）',
           m.activeDistinct);
+        /* ---- anti-slop：配色与首屏（taste-skill Pre-Flight）---- */
+        check(at + ' 没有元素的计算色是纯黑（纯黑 = 没人给它定色，落了 UA 默认值）',
+          m.pureBlack.length === 0, m.pureBlack.slice(0, 3).join('; '));
+        check(at + ' 首屏整节落在初始视口内（不用滚就能看完）',
+          m.heroBottom > 0 && m.heroBottom <= m.innerH,
+          m.heroBottom + ' vs 视口 ' + m.innerH);
+        check(at + ' 首屏 CTA 落在初始视口内（按钮不用滚就点得到）',
+          m.actBottom > 0 && m.actBottom <= m.innerH,
+          m.actBottom + ' vs 视口 ' + m.innerH);
+        /* 阈值 8px：没有那条 CSS 时相邻链接之间只剩 HTML 里的一个空格
+           （实测约 4px），有那条规则时是 18px 左右 —— 8 干净地分开两种情况。
+           窄屏上三个链接会折行，同一行只剩一个链接，这条就自然放过。 */
+        /* ⚠️ 只在 1440 上量。窄屏上这三个链接会折行，而**行内元素跨行时
+           getBoundingClientRect 返回的是各片段的外接矩形** —— 实测 es@320
+           量出一个 -182 的「间距」（两个链接的盒子跨行交叠了）。
+           那不是缺陷，是判据选错了时刻。1440 下三个链接同一行，量得干净（20.5px）。 */
+        if (w >= 1440) {
+          check(at + ' 页脚相邻链接之间有间距（≥8px，不是挤在一起）',
+            m.footGaps.every((g) => g >= 8),
+            '实测 ' + JSON.stringify(m.footGaps));
+        }
+        /* ⚠️ 规则原文是「标题 ≤ 2 行」，这里只守「别失控」，而且是**故意的**：
+           中文标题本来就是两个分句（源码里写死的 <br>），译文（en/ko/es）
+           第二分句在 17em 的量度下必然折行。而 17em ≈ 每行 55~65 个拉丁字符，
+           正是舒服的阅读量度；把 max-width 放宽到能容下第二分句（实测要 ~880px）
+           会让每行到 85+ 字符 —— 那是**拿排版换行数**，更糟。
+           ⚠️ 只在 1440 上量。规则说的是**桌面首屏**的排版纪律；320px 下
+           这个句子必然折到 5 行，在那里数行数是噪音（一条永远要放宽的断言）。
+           上限 3 是实测值（zh/ja 2 行，en/ko/es 3 行），任何回归都会红。 */
+        if (w >= 1440) {
+          check(at + ' 首屏标题不超过 3 行（防译文失控变长）',
+            m.titleLines > 0 && m.titleLines <= 3, m.titleLines + ' 行');
+        }
         /* ---- 页头语言菜单：这是「不用滚到页脚也能换语言」的那个入口 ---- */
         check(at + ' 页头语言菜单可见（不滚到页脚也能换语言）', m.menuVisible, '实测 ' + m.menuBox);
         check(at + ' 页头语言菜单没伸出视口', m.menuInside);
@@ -294,7 +382,10 @@ async function openAndSettle(cdp, url, ms) {
       await cdp.send('CSS.enable');
       const doc = await cdp.send('DOM.getDocument', { depth: 1 });
       const rules = FONT_RULES[loc.tag];
-      for (const sel of ['.hero-lede', '.hero-title']) {
+      /* ⚠️ 原来探的是 `.hero-lede`。09-26 首屏重排把它删了
+         （与 .hero-def 重复，见 mk-landing 的注释），这里换成
+         `.hero-def` —— 同样是 h1 正下方的正文段，同一个字族。 */
+      for (const sel of ['.hero-def', '.hero-title']) {
         const node = await cdp.send('DOM.querySelector',
           { nodeId: doc.root.nodeId, selector: sel });
         if (!node.nodeId) { check('[' + loc.tag + '] ' + sel + ' 找得到', false); continue; }

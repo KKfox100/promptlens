@@ -19,7 +19,12 @@ const fs = require('fs');
 const path = require('path');
 
 const ROOT = path.join(__dirname, '..');
-const PUBLIC = path.join(ROOT, 'public');
+/* ⚠️ 可以被 PL_PUBLIC_DIR 指到别处 —— 变异测试改的是 public/ 的一份**副本**，
+   而这份检查原来是直接读真 public/ 的。不改的话，「首屏 CTA 下方」
+   「一行一个中点」这些静态断言在变异套件里永远不会红：
+   报出来是「漏网」，其实是探针根本没连到那份被改坏的副本上。
+   环境变量名沿用 server.js 已经在用的那个。 */
+const PUBLIC = process.env.PL_PUBLIC_DIR || path.join(ROOT, 'public');
 const SITE = 'https://promptlens.example.com';
 
 /** 与生成器同一张表。**不从这里 import** —— 检查脚本要是复用了生成器的常量，
@@ -320,6 +325,66 @@ LOCALES.forEach((loc) => {
   check('meta description 长度合理（' + descMin + '~' + descMax + '）',
     desc !== null && desc.length >= descMin && desc.length <= descMax,
     desc ? desc.length + ' 字符' : '');
+  /* ---- 首屏栈（anti-slop 规则：Hero stack discipline） ----
+     规则原文：首屏最多 4 个文本块（眉标 / 标题 / 副文 / CTA），并点名禁止
+     「CTA 下方的小字标语 / 信任条 / 价格预告 / 功能列表 / 头像行」。
+
+     本页是 5 块：眉标、h1、定义句、两个 CTA、一条**带链接的免注册声明**。
+     这里按规则的**意图**落地，而不是按字面数到 4 ——
+     那条声明的存在理由不是装饰：「主按钮是免注册入口，所以必须当场说清
+     不保存记录、以及从哪儿登录」（见 index.html 里的注释）。
+     删掉它等于把一条隐私事实藏起来。
+
+     所以判据写成「CTA 之后**最多一个**块，且它必须含链接」：
+     规则点名的那五类全都是**不可点**的装饰文案，这条正好把它们全拦住，
+     又不会逼着我们把声明删掉。 */
+  const heroM = html.match(/<section class="hero">([\s\S]*?)<\/section>/);
+  check('首屏区块找得到', !!heroM);
+  if (heroM) {
+    const hero = heroM[1];
+    const actAt = hero.indexOf('class="hero-actions"');
+    const actEnd = actAt === -1 ? -1 : hero.indexOf('</div>', actAt);
+    check('首屏有 CTA 组（.hero-actions）', actAt !== -1 && actEnd !== -1);
+    const after = actEnd === -1 ? '' : hero.slice(actEnd + '</div>'.length);
+    const afterBlocks = [...after.matchAll(/<(p|div|ul|ol|section)\b[^>]*>([\s\S]*?)<\/\1>/g)];
+    check('首屏 CTA 下方最多一个文本块',
+      afterBlocks.length <= 1, '实际 ' + afterBlocks.length);
+    const decorative = afterBlocks.filter((b) => !/<a\s/.test(b[2]));
+    check('首屏 CTA 下方的块必须可点（禁标语 / 信任条 / 价格预告 / 功能列表）',
+      decorative.length === 0,
+      decorative.map((b) => (b[2] || '').replace(/\s+/g, ' ').trim().slice(0, 36)).join(' | '));
+    const stack = [...new Set([...hero.matchAll(/class="(hero-[a-z-]+)"/g)].map((m) => m[1]))];
+    check('首屏文本块 ≤ 5（4 个栈 + 至多 1 条可点声明）',
+      stack.length <= 5, stack.length + '：' + stack.join(', '));
+  }
+
+  /* ---- 一行最多一个中点 ·（anti-slop 规则） ----
+     ⚠️ 不能拿 visible(html) 去分行 —— 它把换行也压成空格了，
+     整页会变成「一行」，于是这条永远为真（看着像有保护，其实是摆设）。
+     要按**块级元素**切：一个块 ≈ 一行。页脚那三个链接夹两个中点，
+     就是在同一个 <p> 里，按块切才抓得到。
+     内联标签（a / span / em）**不能**当切点，否则每个中点各自成段，又白查。 */
+  const bodyNoHead = html
+    .replace(/<head[\s\S]*?<\/head>/i, '')
+    .replace(/<!--[\s\S]*?-->/g, '')
+    .replace(/<script[\s\S]*?<\/script>/gi, '')
+    .replace(/<style[\s\S]*?<\/style>/gi, '');
+  const BLOCK_TAGS = /<\/?(?:p|div|ul|ol|li|h1|h2|h3|h4|h5|h6|section|footer|header|nav|main|aside|figure|figcaption|blockquote|table|thead|tbody|tr|td|th|dl|dt|dd|br)\b[^>]*>/gi;
+  const dotty = bodyNoHead.split(BLOCK_TAGS)
+    .map((s) => s.replace(/<[^>]+>/g, ''))
+    .filter((s) => (s.match(/·/g) || []).length > 1);
+  check('一行最多一个中点 ·（三个链接夹两个就是两个）',
+    dotty.length === 0,
+    dotty.map((s) => s.replace(/\s+/g, ' ').trim().slice(0, 40)).join(' | '));
+
+  /* ---- 眉标克制：每 3 个分节最多 1 个眉标（anti-slop 规则） ----
+     本页只有 1 个（.hero-kicker）。这条是**护栏**：防止有人给每个分节
+     都加一个小写字眉标 —— 那是典型的「AI 味」排版。 */
+  const eyebrows = (html.match(/class="hero-kicker"/g) || []).length;
+  const nSections = (html.match(/<section\b/g) || []).length;
+  check('眉标数量克制（≤ ⌈分节数/3⌉）',
+    eyebrows <= Math.ceil(nSections / 3),
+    eyebrows + ' 个 / ' + nSections + ' 节');
   console.log('');
 });
 

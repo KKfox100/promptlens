@@ -8,11 +8,7 @@
 
 PromptLens 把「寫 Prompt」變成一步步做選擇：系統拆出角色、受眾、格式、語氣、約束等具體問題，每一個決定都由你來做。支援文字、圖片、影片三類場景，最後給你一份可以直接複製的成品提示詞。
 
-說出你的需求，PromptLens 把它拆成一層層具體的選項 —— 角色、受眾、格式、語氣、約束。 每一個決定都由你來做。幾輪之後，你拿到一份結構完整、真正屬於你的提示詞， 而不是一段「AI 味」很重的模板。
-
 [免註冊開始拆解](https://promptlens.example.com/app.html?guest=1) [先看看它怎麼工作](https://promptlens.example.com/zh-Hant/#how)
-
-免費使用 · 不用信用卡 · 文字 / 圖片 / 影片三類場景都支援
 
 免註冊試用不儲存記錄，離開頁面即清空。 [登入 / 註冊](https://promptlens.example.com/login.html)
 

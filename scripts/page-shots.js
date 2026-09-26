@@ -20,6 +20,7 @@
 const fs = require('fs');
 const path = require('path');
 const { launch, sleep } = require('C:/Users/jack/.workbuddy-ai/skills/cdp-browser-e2e/templates/cdp-client.js');
+const { quietMotion } = require('./lib/quiet-motion');
 
 const BASE = process.env.BASE || 'http://127.0.0.1:5178';
 const OUT = path.join(__dirname, '..', 'screenshots', 'qa');
@@ -34,6 +35,12 @@ const PAGES = (process.env.PAGES || '/').split(',');
   fs.mkdirSync(OUT, { recursive: true });
   const cdp = await launch({ width: 1440, height: 900 });
   try {
+    /* 同 check-landing-live.js：截图工具看到的是「最终态」而不是动画中间态。
+       整页截图会把视口拉成整页高，不压平的话最后一个分节可能半透明。
+       ⚠️ 放在 try **里面**：放外面的话它一旦抛异常，下面的 .catch 会直接
+       process.exit(1)，finally 里的 cdp.close() 就不执行了 —— 留下一只孤儿浏览器。 */
+    await quietMotion(cdp);
+
     for (const p of PAGES) {
       for (const w of WIDTHS) {
         // 先给一个正常高度，让页面按真实宽度布局

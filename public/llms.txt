@@ -3,13 +3,13 @@
 > PromptLens 把「写 Prompt」变成一步步做选择：系统拆出角色、受众、格式、语气、约束等具体问题，每一个决定都由你来做。支持文字、图片、视频三类场景，最后给你一份可以直接复制的成品提示词。
 
 ## 它是怎么工作的
-- [它是怎么工作的](https://promptlens.example.com/#how): 整个过程只有四步，中间不需要你写任何一个字的技术细节 —— 你只需要做选择。
+- [它是怎么工作的](https://promptlens.example.com/#how)
 
 ## 和「让 AI 直接帮你写」有什么不同
-- [和「让 AI 直接帮你写」有什么不同](https://promptlens.example.com/#why): 让大模型一手包办，你拿到的是它猜的；拆开做选择，你拿到的是你要的。 这就是为什么 PromptLens 的成品读起来不像 AI 写的。
+- [和「让 AI 直接帮你写」有什么不同](https://promptlens.example.com/#why)
 
 ## 支持哪三类场景
-- [支持哪三类场景](https://promptlens.example.com/#scenes): 三类场景的拆解方式完全不同，所以 PromptLens 走的是三套流程，不是换个词套同一个模板。
+- [支持哪三类场景](https://promptlens.example.com/#scenes)
 
 ## 常见问题
 - [常见问题](https://promptlens.example.com/#faq)

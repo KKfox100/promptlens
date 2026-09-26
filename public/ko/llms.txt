@@ -3,13 +3,13 @@
 > PromptLens는 프롬프트 쓰기를 선택의 연속으로 바꿉니다. 역할, 대상, 형식, 어조, 제약을 묻고, 결정은 당신이 합니다. 텍스트, 이미지, 영상 세 가지를 지원하며, 마지막에는 그대로 복사할 수 있는 완성된 프롬프트를 받게 됩니다.
 
 ## 어떻게 작동하나요
-- [어떻게 작동하나요](https://promptlens.example.com/ko/#how): 전체 과정은 네 단계뿐이고, 중간에 기술적인 내용을 한 글자도 쓸 필요가 없습니다. 당신은 선택만 하면 됩니다.
+- [어떻게 작동하나요](https://promptlens.example.com/ko/#how)
 
 ## “AI에게 그냥 써 달라고 하기”와 무엇이 다른가요
-- [“AI에게 그냥 써 달라고 하기”와 무엇이 다른가요](https://promptlens.example.com/ko/#why): 대형 모델에 전부 맡기면 돌아오는 것은 그 모델의 추측입니다. 나눠서 직접 고르면 돌아오는 것은 당신이 원한 것입니다. PromptLens의 결과물이 AI가 쓴 글처럼 읽히지 않는 이유가 바로 여기 있습니다.
+- [“AI에게 그냥 써 달라고 하기”와 무엇이 다른가요](https://promptlens.example.com/ko/#why)
 
 ## 어떤 세 가지 시나리오를 지원하나요
-- [어떤 세 가지 시나리오를 지원하나요](https://promptlens.example.com/ko/#scenes): 세 시나리오는 분해 방식이 완전히 달라서, PromptLens는 세 개의 서로 다른 프로세스를 씁니다. 단어만 바꿔 같은 템플릿에 끼워 맞추는 방식이 아닙니다.
+- [어떤 세 가지 시나리오를 지원하나요](https://promptlens.example.com/ko/#scenes)
 
 ## 자주 묻는 질문
 - [자주 묻는 질문](https://promptlens.example.com/ko/#faq)

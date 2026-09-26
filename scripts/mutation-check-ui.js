@@ -342,6 +342,40 @@ const MUTATIONS = [
   /* ⚠️ 这里原来有一条「≤390px 页头不收边距」的变异，09-24 删了 ——
      它**抓不到**：把 main.css 里那一档删掉，485 条断言一条都不红。
      删不红的变异留着，等于给自己一个「这块有测试守着」的错觉。 */
+  {
+    name: '分节进场的 animation-range 用回百分比（视口一高动画就拖长，内容半透明地交出去）',
+    file: CSS,
+    from: '      animation-range: entry 0% entry 160px;',
+    to: '      animation-range: entry 0% cover 20%;',
+    expect: /整页视口下所有分节都完全可见/,
+    /* ⚠️ 这一条必须交给 check-reveal.js 跑。browser-check.js 的 settle()
+       会注入 animation:none !important —— 那正是它的职责（量最终态），
+       但也意味着在它眼里这层动画**从来不存在**，改坏了也不会红。 */
+    suite: 'check-reveal.js',
+  },
+  {
+    name: '.scenario-btn 的计算色退回纯黑（按钮里一旦有裸文本，全站唯一的纯黑就冒出来）',
+    file: CSS,
+    from: '  color: var(--ink);\n  display: flex;\n  flex-direction: column;\n  gap: 2px;\n  padding: 10px 12px 11px;',
+    to: '  color: #000;\n  display: flex;\n  flex-direction: column;\n  gap: 2px;\n  padding: 10px 12px 11px;',
+    expect: /没有元素的计算色是纯黑/,
+  },
+  {
+    name: '首屏 CTA 下面又加回一条不可点的标语（规则点名的 tiny tagline below CTAs）',
+    file: LANDING,
+    from: '    <p class="hero-note">',
+    to: '    <p class="hero-tagline">免费使用 · 不用信用卡 · 三类场景都支持</p>\n    <p class="hero-note">',
+    expect: /首屏 CTA 下方的块必须可点/,
+    suite: 'check-landing.js',
+  },
+  {
+    name: '页脚三个链接之间又夹回两个中点（一行两个 ·）',
+    file: LANDING,
+    from: '      <a href="login.html">登录 / 注册</a>\n      <a href="#how">怎么用</a>\n      <a href="#faq">常见问题</a>',
+    to: '      <a href="login.html">登录 / 注册</a>\n      <span class="foot-sep" aria-hidden="true">·</span>\n      <a href="#how">怎么用</a>\n      <span class="foot-sep" aria-hidden="true">·</span>\n      <a href="#faq">常见问题</a>',
+    expect: /一行最多一个中点/,
+    suite: 'check-landing.js',
+  },
 ];
 
 /* ------------------------------------------------------------------ *
@@ -398,6 +432,12 @@ function waitForServer(port, ms) {
 
 /* 跑一轮 browser-check.js，把 stdout + stderr 原样收回来。
  *
+ * ⚠️ 默认跑 browser-check.js，但变异可以带一个 suite 字段换一套断言。
+ *    分节进场那层（.reveal + animation-timeline: view()）就是必须换的那种：
+ *    browser-check.js 的 settle() 会注入 animation:none !important ——
+ *    那正是它的职责（量最终态），代价是**它永远看不见这层动画**，
+ *    改坏了也不会红。所以那条变异交给 check-reveal.js（它故意不压平）。
+ *
  * ⚠️ 这里**故意用异步 spawn，不用 spawnSync**。两个理由：
  *  1. 实测 spawnSync 在某些受限环境里直接 `EBUSY`（沙箱不允许同步等子进程）。
  *     而失败时 `r.stdout` 是 `undefined` —— 拼出来是空串，下游把它读成
@@ -409,11 +449,15 @@ function waitForServer(port, ms) {
  *
  * 所以：spawn 报错、或一行输出都没有，都**抛异常**，绝不返回空串。
  */
-function runBrowserCheck() {
+function runSuite(script) {
   return new Promise((resolve, reject) => {
-    const child = spawn(process.execPath, [path.join(__dirname, 'browser-check.js')], {
+    const child = spawn(process.execPath, [path.join(__dirname, script)], {
       cwd: ROOT,
-      env: Object.assign({}, process.env, { BASE: 'http://127.0.0.1:' + PORT }),
+      /* ⚠️ 还要把 PL_PUBLIC_DIR 指过去：check-landing.js 这类**静态**套件
+         是直接读磁盘的，不认 BASE。不给它这份，它读的就是真 public/，
+         于是改坏副本它对答案，永远绿 —— 报成「漏网」而其实没连上。 */
+      env: Object.assign({}, process.env, {
+        BASE: 'http://127.0.0.1:' + PORT, PL_PUBLIC_DIR: SHADOW_PUBLIC }),
       stdio: ['ignore', 'pipe', 'pipe'],
     });
     let out = '';
@@ -422,7 +466,7 @@ function runBrowserCheck() {
       if (settled) return;
       settled = true;
       try { child.kill(); } catch (e) { /* ignore */ }
-      reject(new Error('browser-check.js 超过 15 分钟没跑完，已杀掉'));
+      reject(new Error(script + ' 超过 15 分钟没跑完，已杀掉'));
     }, 15 * 60 * 1000);
     child.stdout.on('data', (d) => { out += d; });
     child.stderr.on('data', (d) => { out += d; });
@@ -430,7 +474,7 @@ function runBrowserCheck() {
       if (settled) return;
       settled = true;
       clearTimeout(timer);
-      reject(new Error('拉不起 browser-check.js：' + e.code + ' ' + e.message
+      reject(new Error('拉不起 ' + script + '：' + e.code + ' ' + e.message
         + '\n  子进程起不来时输出是空的，不显式报出来的话，'
         + '下游会把它误判成「这一轮一条 ✗ 都没有」→ 每条变异都算漏网。'));
     });
@@ -439,7 +483,7 @@ function runBrowserCheck() {
       settled = true;
       clearTimeout(timer);
       if (!out.trim()) {
-        reject(new Error('browser-check.js 一行输出都没有（退出码 ' + code + '）'
+        reject(new Error(script + ' 一行输出都没有（退出码 ' + code + '）'
           + '\n  这**不能**当成「一条都没抓到」——那会把工具故障说成断言失效。'));
         return;
       }
@@ -518,7 +562,7 @@ function runBrowserCheck() {
     let out;
     try {
       fs.writeFileSync(target, original.replace(m.from, m.to), 'utf-8');
-      out = await runBrowserCheck();
+      out = await runSuite(m.suite || 'browser-check.js');
     } finally {
       fs.writeFileSync(target, original, 'utf-8');   // 改的是副本，但照样还原
     }

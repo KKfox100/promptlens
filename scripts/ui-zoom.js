@@ -28,6 +28,7 @@
 const fs = require('fs');
 const path = require('path');
 const { launch, sleep } = require('C:/Users/jack/.workbuddy-ai/skills/cdp-browser-e2e/templates/cdp-client.js');
+const { quietMotion } = require('./lib/quiet-motion');
 
 const BASE = process.env.BASE || 'http://127.0.0.1:5178';
 const OUT = path.join(__dirname, '..', 'screenshots', 'qa');
@@ -194,6 +195,9 @@ const FONT_PROBE = `(() => {
 async function main() {
   fs.mkdirSync(OUT, { recursive: true });
   const cdp = await launch({ width: 1440, height: 940 });
+
+  /* 同 check-landing-live.js：先压平分节进场，再量尺寸，别量到中间态。 */
+  await quietMotion(cdp);
 
   /* 把语种钉死成简体，别继承跑图这台机器的浏览器语言。
      落地页现在会按系统语言自动跳转，不钉的话在英文环境的机器上

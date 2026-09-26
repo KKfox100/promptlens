@@ -503,6 +503,28 @@ const MOBILE_PROBE = `(() => {
        ⚠️ 同一个错的另一件外衣：判据的基准不能是被测对象能影响的值。
        这里更进一步 —— 基准不能是**被裁剪的祖先**。 */
     overflow: de.scrollWidth - de.clientWidth,
+    /* anti-slop：用户看得见的元素里，有没有谁的计算色是纯黑。
+       纯黑不是「设计选择」，是「没人给它定色」的形状 —— 典型就是 <button>
+       不写 color，落到 UA 的 ButtonText。工作台上 .scenario-btn 原来正是这样，
+       被 .s-num / .s-name / .s-desc 三条子规则盖着看不出来（09-26 修）。
+       ⚠️ 文档根 <html> 的计算 color 是 CSS 初始值 rgb(0,0,0)，而可见文字
+       都由 <body> 定的色继承下来 —— 它自己不画字，是个惰性值，必须排除，
+       否则这条断言永远是红的。
+       ⚠️ 名字里用 split(' ') 而不是正则 —— 这段代码住在 MOBILE_PROBE 这个
+       模板字面量里，正则里的反斜杠会被**再吃一层**（\s 变成 s）。 */
+    pureBlack: (() => {
+      const SKIP = { HTML: 1, HEAD: 1, META: 1, TITLE: 1, LINK: 1, STYLE: 1, SCRIPT: 1, BASE: 1, NOSCRIPT: 1, TEMPLATE: 1 };
+      const bad = [];
+      for (const el of document.querySelectorAll('*')) {
+        if (SKIP[el.tagName]) continue;
+        if (!el.getClientRects().length) continue;
+        const cs = getComputedStyle(el);
+        const who = el.tagName.toLowerCase() + '.' + (el.className || '').toString().trim().split(' ')[0];
+        if (cs.color === 'rgb(0, 0, 0)') bad.push('color ' + who);
+        if (cs.backgroundColor === 'rgb(0, 0, 0)') bad.push('bg ' + who);
+      }
+      return bad;
+    })(),
     shellOverflow: shell ? shell.scrollWidth - shell.clientWidth : null,
     /* 顶栏的预算。need = 各项宽度和（**不含** flex:1 的占位块）+ 间距 + 内边距，
        所以 need > client 就是放不下；overflow 是它作为滚动容器的真实溢出。
@@ -3514,6 +3536,13 @@ async function main() {
         + '，溢出 ' + m.topbar.overflow + 'px'));
     check('390px 工作台顶栏还有余量（不是「碰巧够」）',
       !!m.topbar && m.topbar.slack >= 20, m.topbar && ('余 ' + m.topbar.slack + 'px'));
+    /* anti-slop（taste-skill Pre-Flight）：没有元素的计算色是纯黑。
+       纯黑在这里不是审美偏好，是**故障信号** —— 它只会在「没人给这个元素
+       定色」时出现。.scenario-btn 原来就是（<button> 的 UA 默认色），
+       被三条子规则盖着看不见；但只要有人往按钮里直接放一个裸文本节点，
+       全站唯一的纯黑就冒出来了。 */
+    check('工作台没有元素的计算色是纯黑（纯黑 = 没人给它定色）',
+      m.pureBlack.length === 0, m.pureBlack.slice(0, 3).join('; '));
     // 用 100vh 的话，手机上这个高度会比看得见的区域高 —— 底部操作栏被推出屏幕。
     check('.app-shell 高度贴合可视区（dvh 生效）',
       m.shellH !== null && Math.abs(m.shellH - m.innerH) <= 1,

@@ -8,11 +8,7 @@ Prompt workbench
 
 PromptLens turns writing a prompt into a series of choices — role, audience, format, tone, constraints. Every decision is yours. It supports text, image and video, and gives you a finished prompt you can copy straight away.
 
-Say what you need, and PromptLens breaks it into concrete choices, one layer at a time — role, audience, format, tone, constraints. Every decision is yours to make. A few rounds later you have a prompt that is complete, structured and genuinely your own, rather than a template that reeks of AI.
-
 [Start without signing up](https://promptlens.example.com/app.html?guest=1) [See how it works first](https://promptlens.example.com/en/#how)
-
-Free to use · No credit card · Text, image and video
 
 Guest use saves no records — everything is cleared when you leave the page. [Log in / Sign up](https://promptlens.example.com/login.html)
 
