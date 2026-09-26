@@ -473,7 +473,7 @@ const MOBILE_PROBE = `(() => {
   const TARGET_SEL = '.btn, .tab, .icon-toggle, .option-btn, .scenario-btn, .bc-icon,'
     + ' .history-item .h-del, .lang-select, .tool-link,'
     + ' .logo, .site-nav a, .lang-link, .lang-menu-btn,'
-    + ' .user-btn, .auth-back, .auth-guest a';
+    + ' .user-btn, .auth-back, .auth-back-narrow, .auth-guest a';
   document.querySelectorAll(TARGET_SEL)
     .forEach(el => {
       const r = el.getBoundingClientRect();
@@ -544,6 +544,7 @@ const MOBILE_PROBE = `(() => {
       tab: count('.tab'),
       userBtn: count('.user-btn'),
       authBack: count('.auth-back'),
+      authBackNarrow: count('.auth-back-narrow'),
       authGuest: count('.auth-guest a'),
     },
     tooSmall: targets.filter(t => t.h < 44),
@@ -3547,10 +3548,16 @@ async function main() {
        而后者是落到这一页又不想注册的人**唯一**的出口。 */
     /* ⚠️ 390 上登录页**只渲染右栏** —— 左栏 `.auth-brand` 在 ≤980 是
        `display:none`（见 main.css），所以「← 返回首页」和页头 logo 在这里
-       量不到（实测 authBack: 0，不是选择器写错了）。它们由 [11.6] 的 iPad
-       那一条守着 —— 1024 上左栏是显示的。这里能点名的只有右栏的免注册出口。 */
-    check('（前置）登录页量到了免注册出口（左栏在 390 上是隐藏的）',
-      m.named.authGuest >= 1, JSON.stringify(m.named));
+       量不到（实测 authBack: 0，不是选择器写错了）。
+       左栏那份是给桌面端的（[11.6] 的 1024 上量得到）；窄屏这份
+       `.auth-back-narrow` 才是手机上的唯一入口，见下面那条断言。 */
+    check('（前置）登录页量到了免注册出口与窄屏返回入口（左栏在 390 上是隐藏的）',
+      m.named.authGuest >= 1 && m.named.authBackNarrow >= 1, JSON.stringify(m.named));
+    /* 左栏要藏的是**品牌宣传语**，回首页是**导航**，不该跟着一起消失。
+       忘了挂窄屏这份 = 手机用户从登录页回不到首页 —— 页面不崩、不报错，
+       只是那个出口没了（静默失效的典型形状）。 */
+    check('登录页窄屏有回首页的入口（左栏那份藏了，这条是唯一入口）',
+      m.named.authBackNarrow >= 1, 'authBackNarrow=' + m.named.authBackNarrow);
     check('登录页窄屏可点控件都 ≥44px',
       m.tooSmall.length === 0,
       m.tooSmall.length ? JSON.stringify(m.tooSmall) : m.targets + ' 个全部达标');
@@ -3629,6 +3636,12 @@ async function main() {
     m = await cdp.eval(MOBILE_PROBE);
     check('（前置）iPad 登录页量到了语言选择器与登录/注册标签',
       m.named.langSelect >= 1 && m.named.tab >= 2, JSON.stringify(m.named));
+    /* 守的是**另一个方向**：窄屏那份是兜底，宽屏不该同时露两份。
+       少了这条，把 .auth-back-narrow 的 `display: none` 默认值删掉
+       不会有任何断言变红 —— 而桌面端会冒出两个「← 返回首页」。 */
+    check('iPad 登录页只露一份回首页入口（左栏那份，窄屏那份藏着）',
+      m.named.authBack >= 1 && m.named.authBackNarrow === 0,
+      'authBack=' + m.named.authBack + ' authBackNarrow=' + m.named.authBackNarrow);
     check('iPad 登录页可点控件都 ≥44px（语言选择器 30→44、标签 38→44）',
       m.tooSmall.length === 0,
       m.tooSmall.length ? JSON.stringify(m.tooSmall) : m.targets + ' 个全部达标');

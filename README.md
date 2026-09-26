@@ -117,7 +117,7 @@ node scripts/check-locale-parity.js  # 六语种行为一致性
 node scripts/check-locale-corpus.js  # 六语种语料自检
 
 node server.js &                     # 下面这些需要服务在跑
-node scripts/browser-check.js        # 界面：571 条（含手机/iPad/极窄屏/免注册模式/顶栏预算）
+node scripts/browser-check.js        # 界面：573 条（含手机/iPad/极窄屏/免注册模式/顶栏预算）
 node scripts/browser-check-file.js   # file:// 数据层：16 条
 node scripts/check-landing-live.js   # 落地页实机：637 条（六语种 × 六种宽度）
 node scripts/check-api.js            # 接口契约：50 条（打 Node 后端）
@@ -149,10 +149,10 @@ http 下必须没有 —— 各只覆盖一边。想造 https 环境：
 ```bash
 node scripts/check-mutation-anchors.js   # 先做 5 秒静态预检（锚点还在不在）
 node scripts/mutation-check.js           # 引擎：48 条
-node scripts/mutation-check-ui.js        # 界面：30 条（约 2 小时，需先停掉 5178）
+node scripts/mutation-check-ui.js        # 界面：32 条（约 2 小时，需先停掉 5178）
 
 # 只跑一段（1 起的序号，含首含尾）—— 改完一小块时不必等全套
-MUT_FROM=26 MUT_TO=30 PORT=5179 node scripts/mutation-check-ui.js
+MUT_FROM=31 MUT_TO=32 PORT=5179 node scripts/mutation-check-ui.js
 ```
 
 ⚠️ 用 `PORT=5179` 绕开 5178 上那个**不是自己起的**服务，比去杀它安全
@@ -231,3 +231,10 @@ npx wrangler d1 execute promptlens --local --file=worker/schema.sql
    所以在账号菜单里也挂了一份（`#langSlot` / `#langSlotMenu`，两个 id 不能重名，
    `mountSwitcher` 调两次）。顶栏那份窄屏是 `display: none` ——
    忘了第二次挂载，手机用户就**再也换不了语种**，页面不崩不报错。
+7. **藏一整栏之前，先看这一栏里还有什么。** 登录页左栏 `.auth-brand`
+   在 ≤980 是 `display: none`，藏的是**品牌宣传语** —— 可
+   「← 返回首页」和 logo 也挂在里面（`login.html` 第 28 / 67 行），
+   于是所有手机上的登录页都没有回首页的入口。实测 390 上 `.auth-back` 数量为 0。
+   **装饰可以藏，导航不行。** 修法是新增 `.auth-back-narrow` 挂在表单区顶部、
+   只在 ≤980 显示（与第 6 条同一招），并且**两个方向各一条断言**：
+   窄屏那份在、宽屏那份不多。

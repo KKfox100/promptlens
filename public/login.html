@@ -73,6 +73,12 @@
   <!-- ============ 右侧表单区 ============ -->
   <section class="auth-panel">
     <div class="lang-corner" id="langSlot"></div>
+    <!-- 回首页的入口。桌面端它挂在左栏（.auth-brand 里的 .auth-back），
+         而左栏在 ≤980 整个 display:none —— 于是手机用户从登录页
+         **回不到首页**，只剩浏览器返回键（实测 390 上 .auth-back 数量为 0，
+         不是选择器写错了）。这里再挂一份，靠 CSS 切换，桌面端一点不变。
+         做法与顶栏语言切换器（#langSlot / #langSlotMenu）完全一致。 -->
+    <a class="auth-back-narrow" href="index.html" data-i18n>← 返回首页</a>
     <div class="auth-form-wrap">
       <h2 class="auth-title" id="formTitle" data-i18n>欢迎回来</h2>
       <p class="auth-desc" id="formDesc" data-i18n>登录后继续你上次的 Prompt 打磨。</p>

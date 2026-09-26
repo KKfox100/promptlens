@@ -42,6 +42,7 @@ const PORT = Number(process.env.PORT || 5178);
 const CSS = 'public/assets/css/main.css';
 const LANDING = 'public/index.html';
 const APP = 'public/app.html';
+const LOGIN = 'public/login.html';
 const WORKSPACE = 'public/assets/js/workspace.js';
 
 const MUTATIONS = [
@@ -323,6 +324,20 @@ const MUTATIONS = [
     from: "PromptLensI18n.mountSwitcher(document.getElementById('langSlotMenu'), { mode: 'select' });",
     to: '',
     expect: /窄屏账号菜单里有语言切换器/,
+  },
+  {
+    name: '登录页窄屏那份回首页入口没了（左栏藏了，手机用户回不到首页）',
+    file: LOGIN,
+    from: '    <a class="auth-back-narrow" href="index.html" data-i18n>← 返回首页</a>',
+    to: '',
+    expect: /登录页窄屏有回首页的入口/,
+  },
+  {
+    name: '登录页窄屏那份回首页入口默认就露着（宽屏上冒出两个「← 返回首页」）',
+    file: CSS,
+    from: '.auth-back-narrow {\n  display: none;',
+    to: '.auth-back-narrow {',
+    expect: /iPad 登录页只露一份回首页入口/,
   },
   /* ⚠️ 这里原来有一条「≤390px 页头不收边距」的变异，09-24 删了 ——
      它**抓不到**：把 main.css 里那一档删掉，485 条断言一条都不红。

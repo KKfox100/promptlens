@@ -63,12 +63,14 @@ function loadMutations(scriptPath, bases) {
   const literal = text.slice(start + 'const MUTATIONS = '.length, end + 2);
 
   /* 把脚本里的文件常量喂进沙箱，数组字面量才能求值。
-     多余的名字无害，所以两套常量一起给。 */
+     多余的名字无害，所以两套常量一起给。
+
+     ⚠️ 这里原来是**手抄**的一份常量表，于是它和变异脚本之间
+     多了一处需要人同步的地方：09-26 加 `const LOGIN = 'public/login.html'`
+     时忘了同步，锚点校验直接 `ReferenceError: LOGIN is not defined` ——
+     而报错指向变异脚本第 283 行，看着像那边写错了。
+     现在从脚本正文里**抽**出来，抄的那一份就不存在了。 */
   const sandbox = {
-    CSS: 'public/assets/css/main.css',
-    LANDING: 'public/index.html',
-    APP: 'public/app.html',
-    WORKSPACE: 'public/assets/js/workspace.js',
     KNOWLEDGE: 'knowledge.js',
     ENGINE: 'engine.js',
     SERVER: 'server.js',
@@ -76,6 +78,9 @@ function loadMutations(scriptPath, bases) {
     PUB: (...p) => path.join('..', 'public', ...p),
     path,
   };
+  for (const m of text.matchAll(/^const ([A-Z][A-Z_0-9]*) = '([^']*)';$/gm)) {
+    sandbox[m[1]] = m[2];
+  }
   return { list: vm.runInNewContext(literal, sandbox, { filename: scriptPath }), bases };
 }
 

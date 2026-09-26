@@ -2412,6 +2412,27 @@ a.logo:hover { text-decoration: none; }
 /* 登录页右上角 */
 .lang-corner { display: flex; justify-content: flex-end; margin-bottom: 10px; }
 
+/* 登录页「← 返回首页」的**窄屏那一份**。
+   ------------------------------------------------------------------
+   桌面端它挂在左栏（.auth-brand 里的 .auth-back），而左栏在 ≤980
+   整个 `display: none` —— 手机用户从登录页就**回不到首页**了，
+   只剩浏览器返回键。这不是设计意图，是「左栏一起被藏了」的连带损失：
+   左栏要藏的是品牌宣传语，回首页是**导航**，不该跟着走。
+   所以这里再挂一份，靠 CSS 切换，桌面端一点不变
+   —— 与顶栏语言切换器（#langSlot / #langSlotMenu）同一个做法。
+
+   ⚠️ 默认 `display: none`：桌面端两份同时出现就成了重复链接。
+   44px 直接写在这里（不必等触摸那节）—— 它本来就只在窄屏存在。 */
+.auth-back-narrow {
+  display: none;
+  align-items: center;
+  min-height: 44px;
+  color: var(--ink-2);
+  font-size: 15px;
+  text-decoration: none;
+}
+.auth-back-narrow:hover { color: var(--primary); }
+
 /* 落地页那一份在**页脚**，不在页头。
    页头版心固定 1080px 且 .site-head-in 不换行：西语的四个导航项
    （Cómo funciona / Por qué es distinto / Casos compatibles /
@@ -2500,6 +2521,9 @@ a.logo:hover { text-decoration: none; }
 @media (max-width: 980px) {
   .auth-shell { grid-template-columns: 1fr; }
   .auth-brand { display: none; }
+  /* 左栏藏了，它里面的「← 返回首页」也跟着没了 —— 窄屏那份补上来。
+     见 .auth-back-narrow 上面的说明。 */
+  .auth-back-narrow { display: inline-flex; }
   .icon-toggle { display: inline-flex; }
   .preview { display: none; }
   /* 由顶栏「预览」按钮拉出 */
