@@ -597,6 +597,18 @@ a:hover { text-decoration: underline; text-underline-offset: 2px; }
   background: var(--warn-soft);
   color: var(--warn-ink);
   border: 1px solid var(--warn-line);
+  /* ⚠️ 下面这三行是修一个真缺陷，不是装饰。
+     .env-badge 是顶栏这个 flex 容器里的项，原来没有 flex:0 0 auto / nowrap，
+     于是空间一紧它就被压到 27.5px 宽，把「免注册模式 · 不保存记录」折成
+     **7 行、203.9px 高**塞进 56px 的顶栏（西语更极端：97.1px / 4 行，
+     比顶栏本身还高）。徽章是**标识**，不是可以随便压的弹性内容。 */
+  flex: 0 0 auto;
+  white-space: nowrap;
+  /* 兜底：万一真放不下就截断，而不是把顶栏撑出去。
+     40vw 在 320px 上是 128px，而窄屏用的短标「不保存记录」只占 ~82px。 */
+  max-width: 40vw;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .user-menu { position: relative; }
@@ -656,6 +668,19 @@ a:hover { text-decoration: underline; text-underline-offset: 2px; }
 }
 .dropdown-head .name { font-family: var(--serif); font-size: 15px; }
 .dropdown-head .meta { font-family: var(--mono); font-size: var(--fs-micro); color: var(--ink-3); margin-top: 2px; }
+
+/* 账号菜单里的语言切换器。
+   窄屏顶栏放不下它（见下面「窄屏顶栏」一节），所以菜单里也挂了一个，
+   靠 CSS 切换显示 —— 桌面端的位置一点不变。
+   它是菜单里唯一一个原生表单控件，所以单独占一行，并用一条细线和
+   下面的操作项分开：「换个语种」和「导出 / 退出」不是一类事。 */
+.dropdown-lang {
+  padding: 2px 5px 9px;
+  border-bottom: 1px solid var(--rule);
+  margin-bottom: 5px;
+}
+.dropdown-lang .lang-select-wrap { display: flex; }
+.dropdown-lang .lang-select { width: 100%; }
 .dropdown-item {
   display: flex;
   align-items: center;
@@ -2491,6 +2516,48 @@ a.logo:hover { text-decoration: none; }
   .main-foot-inner { padding: 0 22px; }
 }
 
+/* ---- 顶栏的预算，从 980px 就要开始算 ----
+   ⚠️ 980 不是随手挑的：上面那个 `@media (max-width: 980px)` 里有
+   `.icon-toggle { display: inline-flex }` —— 也就是说**顶栏在 980px 以下
+   会多出「记录」和「预览」两个按钮**（它们默认 display:none），
+   而从来没人给顶栏重新算过预算。
+   实测西语（最宽的语种）@768：满配顶栏需要约 887px，只有 768px。
+   超出部分被 .app-shell{overflow:hidden} 裁掉，于是语言切换器和账号菜单
+   （导出全部记录 / 退出登录）在**平板和手机上都完全够不着**。
+   ⚠️ 手机那一档（≤720）还要再收一层（把文字标签换成图标），见下面
+      「顶栏的窄屏预算」。两层别合并：768 上留着文字标签更好用，
+      而只做这一层在 768 上就已经放得下了。 */
+@media (max-width: 980px) {
+  /* ① 品牌只留印章：121.9px 的字标是顶栏里最大的一块可省面积，
+     而印章本身已经足够认品牌。 */
+  .topbar .logo > span:not(.logo-mark) { display: none; }
+  /* ② 语言切换器挪进账号菜单。同一份控件在 app.html 里挂了**两处**
+     （#langSlot / #langSlotMenu），靠这里切换显示 —— 桌面端位置不变。
+     ⚠️ 忘了第二次挂载，平板/手机用户就**再也换不了语种**：
+     页面不崩、不报错，只是那个功能没了。 */
+  .topbar .lang-slot { display: none; }
+  /* ③ 横滑兜底：即使收过尺寸，窄屏 + 宽语种仍可能差几十像素。
+     宁可横滑也不能够不着 —— 这正是原来那个「裁掉」的反面。 */
+  .topbar {
+    overflow-x: auto;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+  .topbar::-webkit-scrollbar { display: none; }
+  /* ④ 顶栏成了滚动容器之后，里面的 .dropdown 会被它一起裁掉
+     （.user-menu{position:relative} 就在滚动盒里，.dropdown 是 absolute）。
+     改成 fixed：包含块变成视口，祖先的 overflow 就裁不到它了。 */
+  .topbar .dropdown {
+    position: fixed;
+    top: 56px;
+    right: max(10px, env(safe-area-inset-right));
+    left: auto;
+    max-width: calc(100vw - 20px);
+    max-height: calc(100vh - 66px);
+    overflow-y: auto;
+  }
+}
+
 @media (max-width: 720px) {
   .sidebar { display: none; }
   /* 由顶栏「记录」按钮拉出 */
@@ -2658,6 +2725,27 @@ a.logo:hover { text-decoration: none; }
   /* 浮层里的语言项已经是块级，只要撑高 + 保持整行可点。 */
   .lang-menu-list .lang-link { display: flex; }
 
+  /* 登录页那两个纯文字链接：「← 返回首页」和「先免注册试用一下」。
+     它们**不是**正文里的行内链接（那一类故意不抬，见本节开头的说明），
+     而是「去哪儿」的控件：一个回首页，一个是免注册的唯一出口 ——
+     落到登录页又不想注册的人，全靠这一下。原来只有 16~17px 高。
+     和上面的 .site-nav a / .lang-link 同一个道理。
+     下划线不用 border-bottom（撑高之后线会掉到文字下方 13px 处）——
+     这里交给基础样式里的 a:hover { text-decoration: underline }，
+     它永远贴着文字。
+     ⚠️ #switchLink（「还没有账号？注册」）**故意不加**：它在一句话中间，
+        属于正文行内链接，抬到 44px 会把那一行拆得没法读。
+        它也不在 MOBILE_PROBE 的点名名单里 —— 是排除，不是漏掉。 */
+  .auth-back,
+  .auth-guest a {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+  }
+  /* 账号按钮在窄屏只留头像之后是 34×34，比 44 还小 ——
+     它同样是手指点的东西（里面装着导出与退出）。 */
+  .user-btn { min-height: 44px; min-width: 44px; }
+
   /* 4. iOS 聚焦放大：表单控件字号 <16px 时，Safari 会在聚焦那一瞬间
         把整页放大，而且**不会自动缩回去**，用户得手动捏回来。
         iPad 上同样会 —— 所以这条也跟着触摸走，不再挂在宽度断点上。 */
@@ -2670,6 +2758,44 @@ a.logo:hover { text-decoration: none; }
      和「触摸」有关的一律在上面那一节 —— 两者的门控不同，混在一起
      就会出现「iPad 拿不到触摸适配」这类漏洞（09-23 就是这么来的）。 */
 @media (max-width: 720px) {
+  /* ---- 顶栏的窄屏预算（第二层；第一层在 980px 那一节）----
+     第一层只做了「品牌只留印章 + 语言切换器挪进菜单 + 横滑兜底」，
+     到 720 还要再收一层才放得下。六语种实测「需要多宽」@390：
+     zh-Hans 645 / zh-Hant 646 / ja 685 / ko 697 / en 752 / **es 823**，
+     而只有 390。收完之后 es 余 66px（最紧的一个）。
+     这一层收的是**文字标签**：两个抽屉钮只留图标、账号只留头像、
+     新建钮只留「+」—— 可访问名靠 aria-label / title 撑着。
+     ⚠️ 320px + 西语仍然差 3.7px，那就横滑（横滑是 980 那层做的）。
+     ⚠️ 别把这一层并进 980 那层：平板（768）上留着文字标签更好用，
+        而只做第一层在 768 上就已经放得下（实测）。 */
+  .topbar {
+    gap: 6px;
+    /* 和上面安全区那一节同一个写法：不写死 10px，否则刘海屏上
+       会把这 10px 盖掉、内容钻进圆角里。 */
+    padding-left: max(10px, env(safe-area-inset-left));
+    padding-right: max(10px, env(safe-area-inset-right));
+  }
+  /* ① 两个抽屉钮只留图标。文字 span 收掉之后，可访问名靠 aria-label
+     撑住（按钮上写了 data-i18n-attr="title,aria-label"）。 */
+  .topbar .icon-toggle > span[data-i18n] { display: none; }
+  .topbar .icon-toggle { padding-left: 10px; padding-right: 10px; }
+  /* ① 新建钮只留「+」。⚠️「+」是符号不是文案 —— 六个语种同一个加号，
+     所以不需要译文，也不会随语种变宽（西语的 "+ Nuevo prompt" 是 115.6px）。
+     文字留在 DOM 里，读屏照样念得出来。 */
+  .topbar #newBtn { padding-left: 13px; padding-right: 13px; }
+  .topbar #newBtn .nb-text { display: none; }
+  /* ① 账号只留头像。名字**不能 display:none** —— 那会把它从无障碍树里
+     摘掉，按钮就只剩一个「·」。改成视觉隐藏：布局上不占位，读屏还念得出来。 */
+  .topbar .user-btn #userName {
+    position: absolute;
+    width: 1px; height: 1px;
+    margin: -1px; padding: 0; border: 0;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+  .topbar .user-btn { padding: 4px; gap: 0; }
+
   /* 窄屏改**横滑单行**：5 个 44px 入口如果照桌面那样 wrap，会折成两行，
      把底栏撑到 257px（实测 390×844，占屏幕 30%），内容区被吃掉太多。
      横滑保持单行，底栏回落到 176px。

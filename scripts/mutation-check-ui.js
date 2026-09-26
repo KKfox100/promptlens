@@ -272,6 +272,58 @@ const MUTATIONS = [
     expect: /滚到底之后顶栏的免注册标识仍在视口内/,
   },
 
+  /* ---------------- 窄屏顶栏（09-26） ----------------
+     背景：顶栏从来没做过手机预算。六语种实测「需要多宽」@390 是
+     zh-Hans 645 / ja 685 / ko 697 / en 752 / **es 823**，而只有 390；
+     不带免注册徽章也有 600px，也就是说**免注册之前就差了 210px**。
+     多出来的部分被 .app-shell{overflow:hidden} 裁掉，于是语言切换器和
+     账号菜单在手机上完全够不着，而所有断言都是绿的 ——
+     因为「工作台无横向溢出」量的是 documentElement，那个数被裁成恒 0。
+     下面四条各守一层：① 徽章不许折行 ② 放不下时必须划得到
+     ③ 登录页那两个纯文字链接 ④ 窄屏不许把字标放回来。 */
+  {
+    name: '顶栏徽章可以被压缩折行（那句短标会被挤成两三行竖排）',
+    file: CSS,
+    from: '  flex: 0 0 auto;\n  white-space: nowrap;\n  /* 兜底：万一真放不下就截断，而不是把顶栏撑出去。',
+    to: '  /* 兜底：万一真放不下就截断，而不是把顶栏撑出去。',
+    expect: /徽章也没被压成竖排/,
+  },
+  {
+    name: '窄屏顶栏不再是滚动容器（放不下的控件直接被裁掉、够不着）',
+    file: CSS,
+    from: '  .topbar {\n    overflow-x: auto;\n    scrollbar-width: none;',
+    to: '  .topbar {\n    scrollbar-width: none;',
+    expect: /账号入口完整可见/,
+  },
+  {
+    name: '登录页那两个纯文字链接不再抬到 44px（16px 的出口）',
+    file: CSS,
+    from: '  .auth-back,\n  .auth-guest a {\n    display: inline-flex;\n'
+      + '    align-items: center;\n    min-height: 44px;\n  }',
+    to: '',
+    expect: /登录页窄屏可点控件都 ≥44px/,
+  },
+  {
+    name: '窄屏把品牌字标放回来（顶栏又放不下、要横滑了）',
+    file: CSS,
+    from: '  .topbar .logo > span:not(.logo-mark) { display: none; }',
+    to: '',
+    /* ⚠️ 两个候选，不是「随便哪个都行」——
+       实测这条变异**打不红** [11.5] 那条「390px 工作台顶栏不需要横滑」：
+       [11.5] 量的是**登录态**顶栏，而撑破预算的是免注册那枚徽章。
+       真正抓到它的是 §15 里 **免注册 + 6 语种 × 3 宽度**那一组
+       （zh-Hans/zh-Hant/en/ko/es @390 全红，es @768 也红）。
+       写死成 [11.5] 那条 = 报「漏网」而其实产品早就红了 —— 判据写错，
+       会把「抓到了」说成「没抓到」。 */
+    expect: /(390px 工作台顶栏不需要横滑|在 390px 上顶栏放得下)/,
+  },
+  {
+    name: '账号菜单里忘了挂语言切换器（手机用户再也换不了语种）',
+    file: APP,
+    from: "PromptLensI18n.mountSwitcher(document.getElementById('langSlotMenu'), { mode: 'select' });",
+    to: '',
+    expect: /窄屏账号菜单里有语言切换器/,
+  },
   /* ⚠️ 这里原来有一条「≤390px 页头不收边距」的变异，09-24 删了 ——
      它**抓不到**：把 main.css 里那一档删掉，485 条断言一条都不红。
      删不红的变异留着，等于给自己一个「这块有测试守着」的错觉。 */

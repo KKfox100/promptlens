@@ -463,9 +463,17 @@ const MOBILE_PROBE = `(() => {
      导航 24px、页脚语言 20px）它根本看不见 —— 断言是绿的，缺陷是真的。
      ⚠️ .lang-menu-btn 是 <details> 的 <summary>：
      'a, button, input, select' 一个都不匹配它，是这份名单里最容易漏的一个。 */
+  /* ⚠️ 名单里**故意排除**的一个：#switchLink（登录页「还没有账号？注册」）。
+     它夹在一句话中间，属于正文里的行内链接 —— 那一类不抬到 44px
+     （见 main.css 触摸那一节的说明）。是排除，不是漏掉。
+     ⚠️ 反过来，.user-btn / .auth-back / .auth-guest a 原来是**漏**的：
+     账号按钮装着导出与退出，后两个是登录页仅有的两个「去哪儿」控件
+     （「先免注册试用一下」还是免注册的唯一出口），原来只有 16~17px 高，
+     而名单里一个 .auth-* 都没有 —— 登录页那一条断言等于没写。 */
   const TARGET_SEL = '.btn, .tab, .icon-toggle, .option-btn, .scenario-btn, .bc-icon,'
     + ' .history-item .h-del, .lang-select, .tool-link,'
-    + ' .logo, .site-nav a, .lang-link, .lang-menu-btn';
+    + ' .logo, .site-nav a, .lang-link, .lang-menu-btn,'
+    + ' .user-btn, .auth-back, .auth-guest a';
   document.querySelectorAll(TARGET_SEL)
     .forEach(el => {
       const r = el.getBoundingClientRect();
@@ -488,7 +496,40 @@ const MOBILE_PROBE = `(() => {
        于是 scrollWidth - innerWidth 在「内容宽 320~1280」这一段恒等于 0 ——
        320px 视口里一个需要 332px 的页头，它照样报「不溢出」（09-23 实测）。
        clientWidth 钉死在请求的宽度上，才是能证伪的基准。 */
+    /* ⚠️ 这个数在**工作台上恒等于 0**，不是因为它不溢出，而是因为
+       .app-shell{overflow:hidden} 在祖先上把溢出裁掉了 —— 拿它判工作台
+       等于没判（09-26 实测：顶栏真实溢出 246px，这里照样报 0）。
+       工作台要看 shellOverflow / topbar.overflow 这两条。
+       ⚠️ 同一个错的另一件外衣：判据的基准不能是被测对象能影响的值。
+       这里更进一步 —— 基准不能是**被裁剪的祖先**。 */
     overflow: de.scrollWidth - de.clientWidth,
+    shellOverflow: shell ? shell.scrollWidth - shell.clientWidth : null,
+    /* 顶栏的预算。need = 各项宽度和（**不含** flex:1 的占位块）+ 间距 + 内边距，
+       所以 need > client 就是放不下；overflow 是它作为滚动容器的真实溢出。
+       为什么不含占位块：它会把余量吃掉，于是 need 永远等于视口宽，看不出松紧。 */
+    topbar: (() => {
+      const bar = document.querySelector('.topbar');
+      if (!bar) return null;
+      const cs = getComputedStyle(bar);
+      const gap = parseFloat(cs.columnGap) || 0;
+      const padL = parseFloat(cs.paddingLeft), padR = parseFloat(cs.paddingRight);
+      const kids = Array.from(bar.children).filter((el) => {
+        const r = el.getBoundingClientRect();
+        const k = getComputedStyle(el);
+        return !el.classList.contains('hidden') && k.display !== 'none' && r.width > 0;
+      });
+      const solid = kids.filter((el) => !el.classList.contains('topbar-spacer'));
+      const need = solid.reduce((s, el) => s + el.getBoundingClientRect().width, 0)
+        + gap * Math.max(0, kids.length - 1) + padL + padR;
+      return {
+        client: bar.clientWidth,
+        scroll: bar.scrollWidth,
+        overflow: bar.scrollWidth - bar.clientWidth,
+        need: Math.round(need * 10) / 10,
+        slack: Math.round((bar.clientWidth - need) * 10) / 10,
+        controls: solid.length,
+      };
+    })(),
     hoverNone: matchMedia('(hover: none)').matches,
     coarse: matchMedia('(pointer: coarse)').matches,
     targets: targets.length,
@@ -501,6 +542,9 @@ const MOBILE_PROBE = `(() => {
       langMenuBtn: count('.lang-menu-btn'),
       langSelect: count('.lang-select'),
       tab: count('.tab'),
+      userBtn: count('.user-btn'),
+      authBack: count('.auth-back'),
+      authGuest: count('.auth-guest a'),
     },
     tooSmall: targets.filter(t => t.h < 44),
     formFont: form ? getComputedStyle(form).fontSize : null,
@@ -3398,6 +3442,41 @@ async function main() {
     const setPhone = (w, h) => cdp.send('Emulation.setDeviceMetricsOverride',
       { width: w, height: h, deviceScaleFactor: 2, mobile: true });
 
+    /* 顶栏的可达性。手机上顶栏放不下时可以横滑（见 main.css 的「窄屏顶栏」），
+       但**必须划得到头** —— 所以量的是「最后一个控件（账号）的右缘有没有落进
+       顶栏可视盒里」，而不是 scrollWidth 的大小。
+       ⚠️ 两个时刻各量一次：① 刚进入 ② 把顶栏滚到最右。
+       只量① 会把「能横滑」误判成「够不着」；只量② 会把「一进来就看不见」
+       误判成没问题。两条合起来才是「用户真的够得着」。 */
+    const topbarReach = () => cdp.eval(`(() => {
+      const bar = document.querySelector('.topbar');
+      if (!bar) return null;
+      const box = bar.getBoundingClientRect();
+      const padR = parseFloat(getComputedStyle(bar).paddingRight);
+      const kids = Array.from(bar.children).filter((el) => {
+        const k = getComputedStyle(el);
+        return !el.classList.contains('hidden') && k.display !== 'none';
+      });
+      const last = kids[kids.length - 1];
+      const r = last.getBoundingClientRect();
+      const r0 = kids[0].getBoundingClientRect();
+      return {
+        last: last.id || String(last.className).split(' ')[0],
+        first: kids[0].id || String(kids[0].className).split(' ')[0],
+        lastRight: Math.round(r.right), boxRight: Math.round(box.right),
+        padR: Math.round(padR),
+        firstLeft: Math.round(r0.left), boxLeft: Math.round(box.left),
+        overflow: bar.scrollWidth - bar.clientWidth,
+        lastFullyVisible: r.right <= box.right - padR + 1.5,
+        firstVisible: r0.left >= box.left - 1,
+      };
+    })()`);
+    const topbarScrollEnd = () => cdp.eval(`(() => {
+      const bar = document.querySelector('.topbar');
+      if (bar) bar.scrollLeft = 99999;
+      return bar ? bar.scrollLeft : -1;
+    })()`);
+
     await setPhone(390, 844);
 
     // ---- 落地页 ----
@@ -3417,7 +3496,23 @@ async function main() {
     await cdp.goto(BASE + '/app.html');
     await sleep(900);
     m = await cdp.eval(MOBILE_PROBE);
-    check('工作台窄屏无横向溢出', m.overflow <= 1, m.overflow + 'px');
+    /* ⚠️ 这一条原来量的是 m.overflow（documentElement 的溢出），而它在工作台上
+       **恒等于 0** —— .app-shell{overflow:hidden} 把溢出裁掉了，所以顶栏真实
+       溢出 246px 的时候它照样是绿的（09-26 实测）。改成逐元素量。 */
+    check('工作台窄屏无横向溢出（逐元素量 .app-shell，不是 documentElement）',
+      m.shellOverflow !== null && m.shellOverflow <= 1, 'shell 溢出 ' + m.shellOverflow + 'px');
+    check('（前置）工作台顶栏确实量到了控件（名单漏了就永远绿）',
+      !!m.topbar && m.topbar.controls >= 5,
+      m.topbar && m.topbar.controls + ' 个');
+    /* 顶栏在手机上必须**放得下**（390 是主流宽度）。
+       它原来放不下：六语种实测需要 zh-Hans 645 / es 823，而只有 390，
+       多出来的部分被 .app-shell 裁掉 —— 语言切换器和账号菜单够不着。 */
+    check('390px 工作台顶栏不需要横滑（收过尺寸之后放得下）',
+      !!m.topbar && m.topbar.overflow === 0,
+      m.topbar && ('需要 ' + m.topbar.need + ' / 有 ' + m.topbar.client
+        + '，溢出 ' + m.topbar.overflow + 'px'));
+    check('390px 工作台顶栏还有余量（不是「碰巧够」）',
+      !!m.topbar && m.topbar.slack >= 20, m.topbar && ('余 ' + m.topbar.slack + 'px'));
     // 用 100vh 的话，手机上这个高度会比看得见的区域高 —— 底部操作栏被推出屏幕。
     check('.app-shell 高度贴合可视区（dvh 生效）',
       m.shellH !== null && Math.abs(m.shellH - m.innerH) <= 1,
@@ -3447,6 +3542,18 @@ async function main() {
       await cdp.eval('location.pathname'));
     m = await cdp.eval(MOBILE_PROBE);
     check('登录页窄屏无横向溢出', m.overflow <= 1, m.overflow + 'px');
+    /* 登录页原来**没有**这条断言：可点控件名单里一个 .auth-* 都没有，
+       于是「← 返回首页」（16px）和「先免注册试用一下」（17px）从来没被量过 ——
+       而后者是落到这一页又不想注册的人**唯一**的出口。 */
+    /* ⚠️ 390 上登录页**只渲染右栏** —— 左栏 `.auth-brand` 在 ≤980 是
+       `display:none`（见 main.css），所以「← 返回首页」和页头 logo 在这里
+       量不到（实测 authBack: 0，不是选择器写错了）。它们由 [11.6] 的 iPad
+       那一条守着 —— 1024 上左栏是显示的。这里能点名的只有右栏的免注册出口。 */
+    check('（前置）登录页量到了免注册出口（左栏在 390 上是隐藏的）',
+      m.named.authGuest >= 1, JSON.stringify(m.named));
+    check('登录页窄屏可点控件都 ≥44px',
+      m.tooSmall.length === 0,
+      m.tooSmall.length ? JSON.stringify(m.tooSmall) : m.targets + ' 个全部达标');
     // <16px 会让 iOS 在聚焦瞬间把整页放大，而且不会自己缩回去
     check('登录页表单字号 ≥16px（防 iOS 聚焦放大）',
       m.formFont !== null && parseFloat(m.formFont) >= 16, m.formFont);
@@ -3567,7 +3674,8 @@ async function main() {
     await cdp.goto(BASE + '/app.html');
     await sleep(900);
     m = await cdp.eval(MOBILE_PROBE);
-    check('320px 工作台无横向溢出', m.overflow <= 1, m.overflow + 'px');
+    check('320px 工作台无横向溢出（逐元素量 .app-shell）',
+      m.shellOverflow !== null && m.shellOverflow <= 1, 'shell 溢出 ' + m.shellOverflow + 'px');
     check('320px 工作台可点控件都 ≥44px',
       m.tooSmall.length === 0,
       m.tooSmall.length ? JSON.stringify(m.tooSmall) : m.targets + ' 个全部达标');
@@ -4329,6 +4437,12 @@ async function main() {
       catch (e) { return -1; }
     };
     const projectsBefore = countProjects();
+    /* ⚠️ 读不到 data/db.json 时 countProjects() 返回 -1，而下面那条断言会拿它去比，
+       报出来是「-1 → 1450」—— 看着像「产品偷偷写盘了」，其实是探针没读到文件
+       （两个服务共用 data/db.json 时实测撞上过一次）。
+       读失败必须自己有一条前置断言，不能让它披着产品缺陷的皮。 */
+    check('（前置）读到了服务端的记录条数（读不到下面那条就是瞎的）',
+      projectsBefore >= 0, 'projects=' + projectsBefore);
 
     await cdp.send('Network.enable');
     await cdp.goto(BASE + '/app.html?guest=1');
@@ -4355,12 +4469,24 @@ async function main() {
       const r = b.getBoundingClientRect();
       return {
         text: b.textContent.trim(),
+        title: b.title,
         display: cs.display, visibility: cs.visibility, opacity: cs.opacity,
         top: Math.round(r.top), bottom: Math.round(r.bottom),
+        width: Math.round(r.width), height: Math.round(r.height),
         right: Math.round(r.right), vh: window.innerHeight, vw: window.innerWidth,
       };
     })()`);
-    check('顶栏出现免注册标识', !!badge && /免注册/.test(badge.text), badge && badge.text);
+    /* 徽章现在放的是**短标**（原来那句整话会把 56px 的顶栏压成 7 行竖排）。
+       完整说明挂在 title 上，正文里另外三个地方也都写着。 */
+    check('顶栏出现免注册标识（短标）', !!badge && /不保存/.test(badge.text), badge && badge.text);
+    check('短标上挂着完整说明（title 里是「免注册模式 · 不保存记录」）',
+      !!badge && /免注册模式/.test(badge.title || '') && /不保存记录/.test(badge.title || ''),
+      badge && badge.title);
+    /* ⚠️ 「徽章没有被压成竖排」这条断言**故意不放在这里**：
+       桌面视口下顶栏宽裕，把 flex:0 0 auto / white-space:nowrap 删掉徽章也不会
+       折行 —— 放在这里它就是一条永远为真的摆设（删掉那条规则一条断言都不红）。
+       它挪到了下面 300px + 西语那一格：只有那里顶栏真的不够用，徽章才会被挤，
+       那条断言才**能**红。 */
     check('标识真的被画出来了（不是 display:none / 透明）',
       !!badge && badge.display !== 'none' && badge.visibility !== 'hidden' && Number(badge.opacity) > 0,
       badge && (badge.display + ' / ' + badge.visibility + ' / ' + badge.opacity));
@@ -4368,6 +4494,111 @@ async function main() {
       !!badge && badge.top >= 0 && badge.bottom <= badge.vh && badge.right <= badge.vw,
       badge && ('top=' + badge.top + ' bottom=' + badge.bottom + ' vh=' + badge.vh
         + ' right=' + badge.right + ' vw=' + badge.vw));
+
+    /* ---- 窄屏顶栏的语种预算 ----
+       顶栏「需要多宽」是**随语种变的**（落地页页头就死在这一点上：中文够、英语超）。
+       收尺寸之前实测 @390 需要 zh-Hans 645 / ja 685 / ko 697 / en 752 / **es 823**，
+       而只有 390 —— 不带徽章也有 600，也就是说**免注册之前就差了 210px**。
+       所以修完必须**按最宽的语种**验一遍，只验中文等于没验。 */
+    await cdp.send('Emulation.setTouchEmulationEnabled', { enabled: true, maxTouchPoints: 5 });
+    /* ⚠️ **三个宽度都要量**，而且不是随手挑的：
+       · 390  手机主流宽度，也是余量最紧的一格；
+       · 768  iPad 竖屏。980 以下顶栏会**多出「记录」「预览」两个按钮**
+              （`.icon-toggle` 就挂在 `@media (max-width: 980px)` 里），
+              所以预算最容易只写到 720 —— 那样 721~980 整段没人管。
+              09-26 我自己先踩了这个：全套断言绿着，768 的西语顶栏溢出 119px。
+       · 1024 iPad 横屏 / 小笔记本，回到「桌面配置」（少那两个按钮）。
+       「体检的宽度集合本身会成为盲区」这条已经记在 topics/testing.md 里，
+       所以这里宁可多量两格。 */
+    const TB_WIDTHS = [390, 768, 1024];
+    const TB_TAGS = ['zh-Hans', 'zh-Hant', 'en', 'ja', 'ko', 'es'];
+    for (const tbTag of TB_TAGS) {
+      await cdp.goto(BASE + '/app.html?guest=1&lang=' + tbTag);
+      await sleep(650);
+      for (const tbW of TB_WIDTHS) {
+        await cdp.send('Emulation.setDeviceMetricsOverride',
+          { width: tbW, height: tbW === 390 ? 844 : 1024, deviceScaleFactor: 2, mobile: true });
+        await sleep(260);
+        m = await cdp.eval(MOBILE_PROBE);
+        check('（前置）' + tbTag + ' @' + tbW + ' 顶栏量到了控件',
+          !!m.topbar && m.topbar.controls >= 5, m.topbar && m.topbar.controls + ' 个');
+        check(tbTag + ' 在 ' + tbW + 'px 上顶栏放得下（不需要横滑）',
+          !!m.topbar && m.topbar.overflow === 0,
+          m.topbar && ('需要 ' + m.topbar.need + ' / 有 ' + m.topbar.client
+            + '，溢出 ' + m.topbar.overflow + 'px'));
+        /* 余量只在 390 这一格量 —— 三个宽度里它最紧（实测 es 余 66px、
+           768 余 67px、1024 余 355px）。三格都量只是把同一条断言抄三遍。 */
+        if (tbW === 390) {
+          check(tbTag + ' 在 390px 上顶栏还有余量（不是「碰巧够」）',
+            !!m.topbar && m.topbar.slack >= 12, m.topbar && ('余 ' + m.topbar.slack + 'px'));
+        }
+      }
+    }
+    await cdp.send('Emulation.setDeviceMetricsOverride',
+      { width: 390, height: 844, deviceScaleFactor: 2, mobile: true });
+    await cdp.goto(BASE + '/app.html?guest=1&lang=es');
+    await sleep(650);
+    await cdp.shot(path.join(SHOT_DIR, '23-mobile-topbar-es.png'));
+
+    /* ---- 300px：**余量下限**探针 ----
+       300 不是真机宽度（真机下限是 320）。它的作用是**保证顶栏真的溢出** ——
+       只有真的溢出，下面那条「滚到底够得着」才不是恒真。
+       （320 + 西语实测只溢出几像素，太薄，抓不住「把 overflow-x 删掉」这种变异。）
+       和落地页那条 365px 的余量下限探针是同一个道理。 */
+    await cdp.send('Emulation.setDeviceMetricsOverride',
+      { width: 300, height: 844, deviceScaleFactor: 2, mobile: true });
+    await cdp.goto(BASE + '/app.html?guest=1&lang=es');
+    await sleep(650);
+    m = await cdp.eval(MOBILE_PROBE);
+    check('（前置）300px 西语顶栏确实溢出了（不溢出这条就测不到东西）',
+      !!m.topbar && m.topbar.overflow > 0, m.topbar && (m.topbar.overflow + 'px'));
+    /* 徽章不许折行。只有这一格（300px + 最宽的语种）顶栏才真的不够用 ——
+       把 .env-badge 的 flex:0 0 auto / white-space:nowrap 删掉，它就会被挤成
+       两三行、高度翻倍，这里才会红。 */
+    const badgeTight = await cdp.eval(`(() => {
+      const b = document.getElementById('envBadge');
+      if (!b) return null;
+      const r = b.getBoundingClientRect();
+      return { h: Math.round(r.height), w: Math.round(r.width), text: b.textContent.trim() };
+    })()`);
+    check('300px + 西语下徽章也没被压成竖排（高度不超过一行）',
+      !!badgeTight && badgeTight.h <= 32,
+      badgeTight && ('高 ' + badgeTight.h + 'px 宽 ' + badgeTight.w + 'px 「' + badgeTight.text + '」'));
+
+    /* 语言切换器在窄屏被搬进了账号菜单。⚠️ 这是最容易**静默**丢掉的功能：
+       顶栏那份在窄屏是 display:none，菜单里那份要是没挂上（id 写错、
+       忘了第二次 mountSwitcher），手机用户就**再也换不了语种** ——
+       页面不崩、不报错，只是那个功能没了。 */
+    const langInMenu = await cdp.eval(`(() => {
+      const sel = document.querySelector('#langSlotMenu .lang-select');
+      const top = document.getElementById('langSlot');
+      return {
+        inMenu: !!sel,
+        options: sel ? sel.options.length : 0,
+        topHidden: top ? getComputedStyle(top).display : 'missing',
+      };
+    })()`);
+    check('窄屏账号菜单里有语言切换器（顶栏那份藏了，这份就是唯一入口）',
+      !!langInMenu && langInMenu.inMenu && langInMenu.options >= 2,
+      langInMenu && (langInMenu.options + ' 个语种'));
+    check('窄屏顶栏那份语言切换器确实藏起来了（不是两份都露着）',
+      !!langInMenu && langInMenu.topHidden === 'none', langInMenu && langInMenu.topHidden);
+    const tbFirst = await topbarReach();
+    check('300px 上品牌（第一个控件）仍在视口里',
+      !!tbFirst && tbFirst.firstVisible, tbFirst && (tbFirst.first + ' left=' + tbFirst.firstLeft));
+    await topbarScrollEnd();
+    await sleep(150);
+    const tbLast = await topbarReach();
+    check('300px 上把顶栏滚到底，账号入口完整可见（够得着，不是被裁掉）',
+      !!tbLast && tbLast.lastFullyVisible,
+      tbLast && (tbLast.last + ' 右缘 ' + tbLast.lastRight
+        + '，允许到 ' + (tbLast.boxRight - tbLast.padR)));
+    await cdp.shot(path.join(SHOT_DIR, '24-mobile-topbar-300-es.png'));
+
+    await cdp.send('Emulation.setTouchEmulationEnabled', { enabled: false });
+    await cdp.send('Emulation.clearDeviceMetricsOverride');
+    await cdp.goto(BASE + '/app.html?guest=1');
+    await sleep(800);
 
     const guestSide = await cdp.eval(`(() => {
       const list = document.getElementById('historyList');

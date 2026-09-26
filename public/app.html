@@ -24,7 +24,7 @@
       <span>PromptLens</span>
     </a>
 
-    <button class="btn btn-sm icon-toggle" id="historyToggle" title="我的记录" data-i18n-attr="title">
+    <button class="btn btn-sm icon-toggle" id="historyToggle" title="我的记录" aria-label="我的记录" data-i18n-attr="title,aria-label">
       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
       <span data-i18n>记录</span>
     </button>
@@ -33,15 +33,18 @@
 
     <div class="topbar-spacer"></div>
 
-    <button class="btn btn-sm icon-toggle" id="previewToggle" title="实时预览" data-i18n-attr="title">
+    <button class="btn btn-sm icon-toggle" id="previewToggle" title="实时预览" aria-label="实时预览" data-i18n-attr="title,aria-label">
       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
       <span data-i18n>预览</span>
     </button>
 
-    <button class="btn btn-sm" id="newBtn" data-i18n>+ 新的 Prompt</button>
+    <button class="btn btn-sm" id="newBtn" title="新的 Prompt" aria-label="新的 Prompt" data-i18n-attr="title,aria-label">
+      <span class="nb-plus" aria-hidden="true">+</span><span class="nb-text" data-i18n>新的 Prompt</span>
+    </button>
 
-    <!-- 语言切换器挂这里。落地页那个是**真链接**（各语种有自己的静态页），
-         工作台在登录后面、noindex，客户端换一下就行。 -->
+    <!-- 语言切换器：桌面端挂在顶栏，窄屏顶栏放不下（见 main.css 的
+         「窄屏顶栏」一节）—— 同一份控件在账号菜单里再挂一个，靠 CSS 切换，
+         这样桌面端的位置一点不变。两个 id 不能重名。 -->
     <span class="lang-slot" id="langSlot"></span>
 
     <div class="user-menu">
@@ -54,6 +57,11 @@
           <div class="name" id="ddName">—</div>
           <div class="meta" id="ddMeta">—</div>
         </div>
+        <!-- 语言切换器。桌面端它在顶栏里；手机顶栏放不下（见 main.css 的
+             「窄屏顶栏」一节），所以搬进账号菜单 —— 换语种本来就是「设置」，
+             和导出/退出是一类事。落地页那个是**真链接**（各语种有自己的静态页），
+             工作台在登录后面、noindex，客户端换一下就行。 -->
+        <div class="dropdown-lang" id="langSlotMenu"></div>
         <button class="dropdown-item" id="exportBtn" data-i18n>导出全部记录（JSON）</button>
         <button class="dropdown-item" id="logoutBtn" data-i18n>退出登录</button>
       </div>
@@ -320,6 +328,7 @@
 // 动态渲染出来的节点由 workspace.js 自己负责（生成时就调 t()，或生成后 apply()）。
 PromptLensI18n.apply();
 PromptLensI18n.mountSwitcher(document.getElementById('langSlot'), { mode: 'select' });
+PromptLensI18n.mountSwitcher(document.getElementById('langSlotMenu'), { mode: 'select' });
 </script>
 </body>
 </html>

@@ -117,7 +117,7 @@ node scripts/check-locale-parity.js  # 六语种行为一致性
 node scripts/check-locale-corpus.js  # 六语种语料自检
 
 node server.js &                     # 下面这些需要服务在跑
-node scripts/browser-check.js        # 界面：516 条（含手机/iPad/极窄屏/免注册模式）
+node scripts/browser-check.js        # 界面：571 条（含手机/iPad/极窄屏/免注册模式/顶栏预算）
 node scripts/browser-check-file.js   # file:// 数据层：16 条
 node scripts/check-landing-live.js   # 落地页实机：637 条（六语种 × 六种宽度）
 node scripts/check-api.js            # 接口契约：50 条（打 Node 后端）
@@ -149,10 +149,10 @@ http 下必须没有 —— 各只覆盖一边。想造 https 环境：
 ```bash
 node scripts/check-mutation-anchors.js   # 先做 5 秒静态预检（锚点还在不在）
 node scripts/mutation-check.js           # 引擎：48 条
-node scripts/mutation-check-ui.js        # 界面：25 条（约 2 小时，需先停掉 5178）
+node scripts/mutation-check-ui.js        # 界面：30 条（约 2 小时，需先停掉 5178）
 
 # 只跑一段（1 起的序号，含首含尾）—— 改完一小块时不必等全套
-MUT_FROM=24 MUT_TO=25 PORT=5179 node scripts/mutation-check-ui.js
+MUT_FROM=26 MUT_TO=30 PORT=5179 node scripts/mutation-check-ui.js
 ```
 
 ⚠️ 用 `PORT=5179` 绕开 5178 上那个**不是自己起的**服务，比去杀它安全
@@ -219,3 +219,15 @@ npx wrangler d1 execute promptlens --local --file=worker/schema.sql
 4. **新加一个字段时，落盘白名单要一起改。** 那是白名单式构造，
    忘了登记的症状是「界面上改得好好的，保存后重新载入就没了」——
    数据在浏览器里是对的，只是没落盘。
+5. **响应式断点是「有理由的」，不是随手挑的。** 顶栏的预算分两层，
+   而下面那一层的 980 之所以是 980，是因为 `.icon-toggle { display: inline-flex }`
+   就挂在 `@media (max-width: 980px)` 上 —— **顶栏在 980px 以下会多出
+   「记录」「预览」两个按钮**。预算只写到 720 的话，721~980（iPad 竖屏 768）
+   整段没人管：实测西语在 768 上溢出 119px，而所有断言都是绿的 ——
+   溢出被 `.app-shell { overflow: hidden }` 裁掉了，判据量的是
+   `documentElement`，那个数**恒等于 0**。
+   改顶栏之前先读 `main.css` 里那两节的注释。
+6. **同一个控件挂两处时，两处都要有断言。** 语言切换器在窄屏顶栏放不下，
+   所以在账号菜单里也挂了一份（`#langSlot` / `#langSlotMenu`，两个 id 不能重名，
+   `mountSwitcher` 调两次）。顶栏那份窄屏是 `display: none` ——
+   忘了第二次挂载，手机用户就**再也换不了语种**，页面不崩不报错。

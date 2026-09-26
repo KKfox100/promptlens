@@ -513,7 +513,13 @@
     el.ddName.textContent = t('免注册模式');
     el.ddMeta.textContent = t('这次的内容不会保存');
 
-    el.envBadge.textContent = t('免注册模式 · 不保存记录');
+    /* 徽章只放**短标**。原来这里是整句「免注册模式 · 不保存记录」——
+       顶栏是个 flex 容器，句子一长它就被压成 7 行竖排（西语 4 行 / 97.1px，
+       比顶栏还高），见 main.css 的 .env-badge。
+       完整那句话挂到 title 上；正文里另外三个地方也都写着：
+       账号菜单头、侧栏说明、结果页提示。 */
+    el.envBadge.textContent = t('不保存记录');
+    el.envBadge.title = t('免注册模式 · 不保存记录');
     el.envBadge.classList.remove('hidden');
 
     el.storageNote.textContent = t('免注册模式下不会保存任何记录，离开页面即清空。登录后才会存进你的账号。');
