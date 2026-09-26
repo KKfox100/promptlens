@@ -611,6 +611,34 @@ a:hover { text-decoration: underline; text-underline-offset: 2px; }
   text-overflow: ellipsis;
 }
 
+/* ---- 顶栏的实时得分徽标（窄屏） ----
+   为什么需要它：980px 以下右侧预览栏被收成抽屉（`.preview { display: none }`），
+   于是「原始 Prompt / 当前得分」两张卡在手机上**整个问答过程都看不见** ——
+   用户报的「H5 里没看见 prompt 得分」就是这个。徽标挂在「预览」按钮里，
+   所以：① 它跟着那个按钮一起在 980px 以上消失（桌面端侧栏本来就有，不用重复）；
+   ② 点它就是开抽屉，不用再给徽标单独接线。
+   值是 `#scoreAfter` 的镜像，由 workspace.js 的 setScoreAfter 一处写。
+
+   样式上**不画边框**：它本身就在一个有边框的 .btn 里，再描一圈就成了
+   盒子套盒子。用一层朱红浅底把它和「预览」两个字分开就够了 ——
+   朱红是全站唯一的高饱和色，正好承担「这是分数」这个信号。
+   等宽字族：数字要对齐，不然 11 → 93 会让按钮宽度跳一下。 */
+.score-badge {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 2px;
+  padding: 1px 5px;
+  border-radius: var(--radius-sm);
+  background: var(--primary-soft);
+  color: var(--primary-dark);
+  font-family: var(--mono);
+  font-size: var(--fs-micro);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  /* 徽标是「标识」不是弹性内容，理由同 .env-badge —— 空间一紧它会被压扁换行 */
+  flex: 0 0 auto;
+}
+
 .user-menu { position: relative; }
 .user-btn {
   display: flex;

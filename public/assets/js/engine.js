@@ -1613,9 +1613,29 @@
     return null;
   }
 
+  /**
+   * 成品完整度评分。
+   *
+   * 两条铁律，各堵一个已经踩过的坑：
+   *
+   * 1) **只有真的往 Prompt 里写了字，才算「答了」。**
+   *    判据必须和 collectFragments 完全一致 —— 选中项带 fragment，或者有自定义文本。
+   *    只点了「拿不准，跳过这题 / 这些都不需要」时，一个字都没写进去，
+   *    那时候加分就是分数在替一段不存在的内容背书。
+   *    （踩过：全程选「拿不准」，原文一字未改，分数却从 11 涨到 60。）
+   *    注意原来是两档（有选择 0.94 / 答了没选 0.6），而「答了没选」这一档
+   *    **只可能由伪选项到达** —— 真选项一选就非空。也就是说那一档从上线起
+   *    就只在给「拿不准」发分，所以这里直接收成一档。
+   *
+   * 2) **每个维度以「原文在该维度的得分」为下限。**
+   *    成品里原封不动地带着用户的原文（buildPromptText 把它放在任务段、
+   *    buildVisualPrompt 把它放在开头），所以任何一个维度的完整度都不可能
+   *    比原文更低。于是「什么都没改」时分数必须原样返回，而不是掉到 0 ——
+   *    掉到 0 和涨上去一样，都是分数在说一件没发生过的事。
+   */
   function scoreFinalPrompt(session) {
     const family = session.family || 'text';
-    // 每个维度：是否回答过 / 是否有有效选择
+    // 每个维度：这一轮到底有没有往 Prompt 里写字
     const state = {};
     // 追问链已经断掉的旧答案不能算分：它压根没进 Prompt，
     // 却让「完整度」显示成 94 分 —— 那就是分数在替一段不存在的内容背书。
@@ -1624,19 +1644,30 @@
       if (!active[qid]) return;
       const dim = dimOf(qid, family);
       if (!dim) return;
-      const selected = (session.answers[qid] || []).filter((id) => id !== '__skip__' && id !== '__custom__');
-      const hasCustom = !!session.customs[qid];
-      const effective = selected.length > 0 || hasCustom;
-      if (!state[dim]) state[dim] = { answered: true, effective: false };
-      if (effective) state[dim].effective = true;
+      const q = getQuestion(qid, session.scenarioId);
+      if (!q) return;
+      // 用和 collectFragments 同一套收敛规则，保证「算分的」和「进正文的」
+      // 是同一批选择 —— 两处各推一遍，迟早会推岔。
+      const picked = normalizeSelection(q, session.answers[qid]);
+      const wrote = !!session.customs[qid] || picked.some((id) => {
+        const opt = (q.options || []).find((o) => o.id === id);
+        return !!(opt && opt.fragment);
+      });
+      if (!wrote) return;
+      state[dim] = true;
     });
+
+    const before = session.scoreBefore;
+    const beforeValue = (key) => {
+      if (!before || !before.items) return 0;
+      const hit = before.items.find((b) => b.key === key);
+      return hit ? hit.value : 0;
+    };
 
     let total = 0;
     const items = K.scoreItemsFor(family).map((item) => {
-      const st = state[item.key];
-      let ratio = 0;
-      if (st && st.answered) ratio = st.effective ? 0.94 : 0.6;
-      const value = Math.round(item.weight * ratio);
+      const written = state[item.key] ? Math.round(item.weight * 0.94) : 0;
+      const value = Math.max(written, beforeValue(item.key));
       total += value;
       return {
         key: item.key,
@@ -1644,11 +1675,11 @@
         hint: item.hint,
         weight: item.weight,
         value,
-        ratio,
+        ratio: item.weight ? value / item.weight : 0,
       };
     });
 
-    const styleTouched = !!(state.style && state.style.effective);
+    const styleTouched = !!state.style;
 
     return { total: Math.round(total), items, styleTouched, family };
   }

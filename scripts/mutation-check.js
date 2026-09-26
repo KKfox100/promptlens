@@ -26,7 +26,7 @@
 const fs = require('fs');
 const os = require('os');
 const path = require('path');
-const { execFileSync } = require('child_process');
+const { spawn } = require('child_process');
 
 const ROOT = path.join(__dirname, '..');
 const SRC_DIR = path.join(ROOT, 'public', 'assets', 'js');
@@ -98,6 +98,36 @@ const MUTATIONS = [
     from: "      if (!active[qid]) return;\n      const dim = dimOf(qid, family);",
     to: '      const dim = dimOf(qid, family);',
     expect: '残留的追问答案还在加分',
+  },
+
+  /* ---------------- 没做选择就不许涨分（09-26，用户报的缺陷） ----------------
+     背景：全程选「拿不准」、原文一个字没改，得分却从 11 涨到 60。
+     根因是「答了」这个判据原来只认 `session.answers` 里有没有这个 qid，
+     而伪选项也写进 answers —— 于是一道只点了「拿不准」的题照样拿 0.6 档。
+     下面三条各守一层：
+       ① 判据本身（有没有真的往 Prompt 里写字）；
+       ② 0.6 那一档（它只可能由伪选项到达，等于专给「拿不准」发分）；
+       ③ 原文下限（没有下限时，「什么都没改」会掉到 0 分，比涨分更荒唐）。 */
+  {
+    name: '给「拿不准」也发分（还原「什么都没改分数却涨了」的原始 bug）',
+    file: ENGINE,
+    from: '      if (!wrote) return;\n      state[dim] = true;',
+    to: '      state[dim] = true;',
+    expect: '全程选「拿不准」，得分却涨了',
+  },
+  {
+    name: '把「答了但没写字」重新算成 0.6 档（那一档只可能由伪选项到达）',
+    file: ENGINE,
+    from: '      const written = state[item.key] ? Math.round(item.weight * 0.94) : 0;',
+    to: '      const written = state[item.key] ? Math.round(item.weight * 0.94) : Math.round(item.weight * 0.6);',
+    expect: '一题都没答，得分却动了',
+  },
+  {
+    name: '评分不再以原文为下限（什么都没改反而掉分）',
+    file: ENGINE,
+    from: '      const value = Math.max(written, beforeValue(item.key));',
+    to: '      const value = written;',
+    expect: '一题都没答，得分却动了',
   },
   {
     name: '手工调过的分镜表不再参与渲染（用户改了半天，输出还是自动那一版）',
@@ -554,7 +584,35 @@ fs.readdirSync(PUBLIC_SRC).forEach((d) => {
 
 console.log('（在临时副本上做变异，真源码不动：' + TMP + '）\n');
 
-MUTATIONS.forEach((m, i) => {
+/**
+ * 跑一个检查脚本，拿回「退出码 + 全部输出」。
+ *
+ * ⚠️ 这里**必须**用异步 spawn，不能用 execFileSync / spawnSync。
+ *   本机沙箱里那两个一律抛 `EBUSY`（连 `execFileSync(node, ['某文件.js'])`
+ *   都是），而症状极具迷惑性：`e.stdout` / `e.stderr` 全是空字符串，
+ *   于是每一条变异都走进「测试确实失败了，但失败信息里没有…」那一支，
+ *   看着像**断言没抓对**，其实子进程压根没跑起来 —— 51 条全红，
+ *   一条真问题都没有。界面那套（mutation-check-ui.js）本来就是异步 spawn，
+ *   所以它一直正常，只有这一套踩了。
+ */
+function runSuite(script, env) {
+  return new Promise((resolve) => {
+    const child = spawn(process.execPath, [path.join(__dirname, script)], {
+      cwd: ROOT,
+      env: env,
+      stdio: ['ignore', 'pipe', 'pipe'],
+    });
+    let out = '';
+    child.stdout.on('data', (d) => { out += d; });
+    child.stderr.on('data', (d) => { out += d; });
+    child.on('error', (err) => resolve({ code: -1, out: out + '\n' + err.message }));
+    child.on('close', (code) => resolve({ code, out }));
+  });
+}
+
+(async () => {
+for (let i = 0; i < MUTATIONS.length; i += 1) {
+  const m = MUTATIONS[i];
   const tag = `[${i + 1}/${MUTATIONS.length}] ` + m.name;
   // server.js 不在 js 目录里（test-engine 那条落盘白名单断言读它），单独定位
   const target = m.file === SERVER
@@ -567,27 +625,28 @@ MUTATIONS.forEach((m, i) => {
     bad += 1;
     console.log('  ✗ ' + tag);
     console.log('      变异点不唯一（命中 ' + hits + ' 次）—— 这条变异本身是坏的，不算数');
-    return;
+    continue;
   }
 
   let out = '';
   let failedAsExpected = false;
   try {
     fs.writeFileSync(target, original.replace(m.from, m.to));
-    execFileSync(process.execPath, [path.join(__dirname, RUNNERS[m.run || 'engine'])], {
-      cwd: ROOT,
-      stdio: 'pipe',
-      env: Object.assign({}, process.env, {
-        PL_JS_DIR: TMP_JS,
-        PL_SERVER_FILE: path.join(TMP, 'server.js'),
-        /* 指到镜像的那份 public/。不指过去的话，LLMO 那几条变异会
-           「改坏了却全绿」—— 检查脚本读的还是真文件。 */
-        PL_PUBLIC_DIR: TMP_PUBLIC,
-      }),
-    });
-  } catch (err) {
-    failedAsExpected = true;
-    out = String((err.stdout || '') + (err.stderr || ''));
+    const res = await runSuite(RUNNERS[m.run || 'engine'], Object.assign({}, process.env, {
+      PL_JS_DIR: TMP_JS,
+      PL_SERVER_FILE: path.join(TMP, 'server.js'),
+      /* 指到镜像的那份 public/。不指过去的话，LLMO 那几条变异会
+         「改坏了却全绿」—— 检查脚本读的还是真文件。 */
+      PL_PUBLIC_DIR: TMP_PUBLIC,
+    }));
+    failedAsExpected = res.code !== 0;
+    out = res.out;
+    if (res.code === -1) {
+      console.log('  ✗ ' + tag);
+      console.log('      检查脚本没能跑起来：' + out.slice(-200));
+      bad += 1;
+      continue;
+    }
   } finally {
     fs.writeFileSync(target, original);
   }
@@ -596,7 +655,7 @@ MUTATIONS.forEach((m, i) => {
     bad += 1;
     console.log('  ✗ ' + tag);
     console.log('      改坏了代码，测试却照样全绿 —— 说明没有断言在守这件事');
-    return;
+    continue;
   }
   if (out.indexOf(m.expect) === -1) {
     bad += 1;
@@ -604,14 +663,15 @@ MUTATIONS.forEach((m, i) => {
     console.log('      测试确实失败了，但失败信息里没有「' + m.expect + '」—— 报错的不是这条断言');
     const line = out.split('\n').filter((l) => l.indexOf('!!') === 0)[0] || '(没找到失败行)';
     console.log('      实际报错：' + line.slice(0, 140));
-    return;
+    continue;
   }
   console.log('  ✓ ' + tag);
-});
-
-console.log('\n' + '='.repeat(72));
-if (bad) {
-  console.log(`${bad} 条变异没有被正确捕获 ✗`);
-  process.exit(1);
 }
-console.log('全部 ' + MUTATIONS.length + ' 条变异都被捕获 ✓');
+})().then(() => {
+  console.log('\n' + '='.repeat(72));
+  if (bad) {
+    console.log(`${bad} 条变异没有被正确捕获 ✗`);
+    process.exit(1);
+  }
+  console.log('全部 ' + MUTATIONS.length + ' 条变异都被捕获 ✓');
+});

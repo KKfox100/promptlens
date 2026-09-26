@@ -110,14 +110,14 @@ samples/                    示例素材
 （详细的方法论写在 `scripts/` 各文件顶部的注释里。）
 
 ```bash
-node scripts/test-engine.js          # 引擎：126 条
+node scripts/test-engine.js          # 引擎：141 条
 node scripts/check-landing.js        # 落地页静态：305 条（含 anti-slop 的静态规则）
 node scripts/check-llmo.js           # 给大模型读的摘要：170 条
 node scripts/check-locale-parity.js  # 六语种行为一致性
 node scripts/check-locale-corpus.js  # 六语种语料自检
 
 node server.js &                     # 下面这些需要服务在跑
-node scripts/browser-check.js        # 界面：574 条（含手机/iPad/极窄屏/免注册模式/顶栏预算）
+node scripts/browser-check.js        # 界面：590 条（含手机/iPad/极窄屏/免注册模式/顶栏预算/顶栏得分徽标）
 node scripts/browser-check-file.js   # file:// 数据层：16 条
 node scripts/check-landing-live.js   # 落地页实机：757 条（六语种 × 六种宽度，含纯黑 / 首屏视口 / 页脚间距）
 node scripts/check-reveal.js         # 分节进场层：11 条（⚠️ 这个脚本**故意不压平动画**）
@@ -149,16 +149,22 @@ http 下必须没有 —— 各只覆盖一边。想造 https 环境：
 
 ```bash
 node scripts/check-mutation-anchors.js   # 先做 5 秒静态预检（锚点还在不在）
-node scripts/mutation-check.js           # 引擎：48 条
-node scripts/mutation-check-ui.js        # 界面：36 条（约 2 小时，需先停掉 5178）
+node scripts/mutation-check.js           # 引擎：51 条（含 6 条 LLMO）
+node scripts/mutation-check-ui.js        # 界面：39 条（约 2 小时，需先停掉 5178）
 
 # 只跑一段（1 起的序号，含首含尾）—— 改完一小块时不必等全套
-MUT_FROM=33 MUT_TO=36 PORT=5179 node scripts/mutation-check-ui.js
+MUT_FROM=37 MUT_TO=39 PORT=5179 node scripts/mutation-check-ui.js
 ```
 
 ⚠️ 用 `PORT=5179` 绕开 5178 上那个**不是自己起的**服务，比去杀它安全
 （脚本自己拉起服务并把 `BASE` 传给子进程；`PORT` 是它自己的服务端口，
 不是 `browser-check.js` 的 `BASE` —— 两者别类推）。
+
+⚠️ `mutation-check.js` **必须用异步 `spawn` 跑子进程，不能用 `execFileSync`**。
+本机沙箱里 `execFileSync` / `spawnSync` 一律抛 `EBUSY`（连
+`execFileSync(node, ['某文件.js'])` 都是），而症状极具迷惑性：`e.stdout`
+是空字符串，于是每一条变异都走进「测试确实失败了，但失败信息里没有…」那一支，
+**51 条全红、一条真问题都没有** —— 看着像断言没抓对，其实是子进程没跑起来。
 
 `check-mutation-anchors.js` 值得单独说：变异脚本最容易失败的方式不是「没抓到」，
 而是「锚点找不到」—— 报错只说「命中 0 次」，而一轮要跑两小时。

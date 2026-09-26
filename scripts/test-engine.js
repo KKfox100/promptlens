@@ -1095,14 +1095,26 @@ function pathTo(fam, target) {
 });
 
 // 4. 静态映射对了还不够 —— 还得确认 scoreFinalPrompt 真的去读了那个维度。
-//    做法：从零分起「只答这一题」，得分必须 > 0。
+//    做法：从「一题不答」的基准分出发，逐题单独答一遍，看**哪些评分项的 value 涨了**；
+//    一个评分项如果没有任何一道题能把它推上去，它就是空头分。
+//
+//    ⚠️ 这条原来问的是「只答这一题，总分是不是 > 0」。评分现在有下限
+//    （每个维度不低于原文在该维度的得分），总分**永远** > 0 —— 那条断言
+//    会永远为真，一条不会红的断言等于没有。改成逐项比对基准，判据回到「涨没涨」。
+//    也不能拿「0 分」当基准：原始输入本身就有分。
+//
 //    注意不能反过来做「全答了再去掉一题」：同维度的兄弟题会把空缺兜住
 //    （text 的 role 与 role.stance 都映射到 role），那样测出来的是假阳性。
 //
 //    追问型的题要先选上父题（pathTo）：父题没选，这题就不在流程上，
 //    引擎不读它的答案 —— 那是设计，不是「答了不加分」。
 ['text', 'image', 'video'].forEach((fam) => {
-  const zero = [];
+  const baseSession = Engine.createSession('测试输入');
+  Engine.setScenario(baseSession, SCENARIO_ID[fam]);
+  const baseItems = {};
+  Engine.scoreFinalPrompt(baseSession).items.forEach((it) => { baseItems[it.key] = it.value; });
+
+  const raised = {};
   let checked = 0;
   reachableIn(fam).forEach((qid) => {
     const q = Engine.getQuestion(qid, SCENARIO_ID[fam]);
@@ -1114,11 +1126,15 @@ function pathTo(fam, target) {
     Engine.setScenario(s, SCENARIO_ID[fam]);
     Object.assign(s.answers, pathTo(fam, qid));
     s.answers[qid] = [first.id];
-    if (Engine.scoreFinalPrompt(s).total === 0) zero.push(qid);
+    Engine.scoreFinalPrompt(s).items.forEach((it) => {
+      if (it.value > (baseItems[it.key] || 0)) raised[it.key] = qid;
+    });
   });
+
+  const dead = K.scoreItemsFor(fam).filter((it) => !raised[it.key]).map((it) => it.key);
   if (!checked) fail(`[${fam}] 一道题都没测到，说明扫描逻辑本身坏了`);
-  else if (zero.length) fail(`[${fam}] 这些题答了分数纹丝不动（只答它仍得 0 分）：` + zero.join(', '));
-  else console.log(`  ✓ [${fam}] ${checked} 道题单独答都能推动得分`);
+  else if (dead.length) fail(`[${fam}] 这些评分项没有任何一道题能把它推上去（空头分）：` + dead.join(', '));
+  else console.log(`  ✓ [${fam}] ${checked} 道题里，每个评分项都至少有一道题能把它推上去`);
 });
 
 /* ================================================================ *
@@ -2450,6 +2466,105 @@ if (missingCodeSections.length) {
 } else console.log('  ✓ `### 镜头 N（时间码）` 只出现在「逐段画面描述」一节（在 '
   + codeHeads.length + ' 节上查过：' + codeHeads.join(' / ') + '）');
 }
+
+/* ================================================================ *
+ * 四之十、没做选择就不许涨分
+ * ================================================================ *
+ * 用户报的缺陷：**一个字都没改，全程选「拿不准」，得分却涨了**
+ * （实测 text 11→60、image 12→60、video 36→60）。
+ *
+ * 根因是评分原来有两档（有选择 0.94 / 答了没选 0.6），而「答了没选」
+ * 那一档**只可能由伪选项到达** —— 真选项一选就非空。也就是说那一档
+ * 从上线起就只在给「拿不准」发分。分数涨了，而屏幕上一条「补齐项」
+ * 都没有：涨了却不说为什么涨，比涨本身更糟。
+ *
+ * 这一节钉四件事：
+ *   ① 一题都不答 → 分数必须**原样不动**（成品里原封不动带着原文，
+ *      它不可能比原文更完整，也不该比原文更差）；
+ *   ② 全程答「拿不准」→ 同上，且**不许列出任何「补齐项」**、
+ *      不许生成任何决策；
+ *   ③ 答了「拿不准」的维度，不许比压根没答这一题更高；
+ *   ④ 但真答了一题就必须比不答高 —— 别把「不许白涨分」做成「谁都不涨分」。
+ */
+console.log('\n' + '='.repeat(72));
+console.log('四之十、没做选择就不许涨分');
+
+const SKIP_CASES = [
+  { fam: 'text', scenario: SCENARIO_ID.text, text: '帮我写一封给客户的道歉邮件' },
+  { fam: 'image', scenario: SCENARIO_ID.image, text: '一只橘猫坐在窗台上' },
+  { fam: 'video', scenario: SCENARIO_ID.video, text: '一个人走在雨夜的城市街头，霓虹灯的倒影落在积水里' },
+];
+
+SKIP_CASES.forEach(({ fam, scenario, text }) => {
+  // ① 一题都不答
+  const idle = Engine.createSession(text);
+  Engine.setScenario(idle, scenario);
+  const idleScore = Engine.scoreFinalPrompt(idle);
+  if (idleScore.total !== idle.scoreBefore.total) {
+    fail(`[${fam}] 一题都没答，得分却动了：${idle.scoreBefore.total} → ${idleScore.total}`);
+  } else {
+    console.log(`  ✓ [${fam}] 一题不答时得分原样不动（${idle.scoreBefore.total}）`);
+  }
+
+  // ② 全程「拿不准」
+  const all = Engine.createSession(text);
+  Engine.setScenario(all, scenario);
+  let guard = 0;
+  let batch = Engine.nextRound(all);
+  let asked = 0;
+  while (batch.length && guard < 40) {
+    guard += 1;
+    const answers = {};
+    batch.forEach((q) => {
+      asked += 1;
+      answers[q.id] = { selected: Engine.toggleOption(q, [], '__skip__') };
+    });
+    batch = Engine.submitRound(all, answers);
+  }
+  if (guard >= 40) fail(`[${fam}] 全程选「拿不准」时疑似死循环`);
+  const res = Engine.finalize(all);
+  if (asked < 5) fail(`[${fam}] 只问了 ${asked} 题，这条断言没跑到位`);
+  if (res.scoreAfter.total !== res.scoreBefore.total) {
+    fail(`[${fam}] 全程选「拿不准」，得分却涨了：${res.scoreBefore.total} → ${res.scoreAfter.total}`);
+  } else {
+    console.log(`  ✓ [${fam}] 全程选「拿不准」（${asked} 题）得分不动（${res.scoreBefore.total}）`);
+  }
+  if (res.improvements.length) {
+    fail(`[${fam}] 什么都没改却列出了 ${res.improvements.length} 条「补齐项」：`
+      + res.improvements.map((i) => i.label).join('、'));
+  } else {
+    console.log(`  ✓ [${fam}] 全程选「拿不准」时不列任何「补齐项」`);
+  }
+  if (res.decisions.length) fail(`[${fam}] 没做选择却生成了 ${res.decisions.length} 条决策`);
+
+  // ③ 「拿不准」和不答必须同分
+  const firstQid = (K.FLOWS[fam].core || [])[0];
+  const q0 = firstQid ? Engine.getQuestion(firstQid, scenario) : null;
+  if (!q0) fail(`[${fam}] 拿不到核心题 ${firstQid}，这条断言没跑到位`);
+  else {
+    const withSkip = Engine.createSession(text);
+    Engine.setScenario(withSkip, scenario);
+    withSkip.answers[q0.id] = ['__skip__'];
+    const without = Engine.createSession(text);
+    Engine.setScenario(without, scenario);
+    const a = Engine.scoreFinalPrompt(withSkip).total;
+    const b = Engine.scoreFinalPrompt(without).total;
+    if (a !== b) fail(`[${fam}] 答「拿不准」和不答分数不一样：不答 ${b} / 拿不准 ${a}（题 ${q0.id}）`);
+    else console.log(`  ✓ [${fam}] 「拿不准」和不答同分（${b}）—— 题 ${q0.id}`);
+  }
+
+  // ④ 真答一题必须比不答高（守住「不许白涨分」不等于「谁都不涨分」）
+  const real = q0 && q0.options.filter((o) => !o.skip && !o.custom && o.fragment)[0];
+  if (real) {
+    const answered = Engine.createSession(text);
+    Engine.setScenario(answered, scenario);
+    answered.answers[q0.id] = [real.id];
+    const c = Engine.scoreFinalPrompt(answered).total;
+    const d = Engine.scoreFinalPrompt(idle).total;
+    if (c <= d) fail(`[${fam}] 真答了「${real.label}」分数却没动：不答 ${d} / 答了 ${c}`);
+    else console.log(`  ✓ [${fam}] 真答一题分数确实涨了（${d} → ${c}）—— 题 ${q0.id}`);
+  }
+});
 
 /* ================================================================ *
  * 五、边界

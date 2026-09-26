@@ -201,6 +201,9 @@
     previewRound: $('previewRound'),
     scoreBefore: $('scoreBefore'),
     scoreAfter: $('scoreAfter'),
+    // 顶栏那个实时得分徽标（窄屏才有，挂在「预览」按钮里）。
+    previewScore: $('previewScore'),
+    previewScoreValue: $('previewScoreValue'),
     decisionList: $('decisionList'),
     livePreview: $('livePreview'),
 
@@ -812,6 +815,21 @@
     }, 350);
   }
 
+  /**
+   * 顶栏那个实时得分徽标（窄屏才有）。
+   *
+   * 它和侧栏「当前得分」**必须是同一个值** —— 两处各写各的，迟早会不一致，
+   * 而「同一件事两个数」比只有一个数更糟。所以只留这一个写入点：
+   * 凡是改「当前得分」的地方都走它，别直接写 el.scoreAfter。
+   *
+   * 还没开始拆解时两边都是「—」，这是**故意**的：此刻确实还没有「当前得分」，
+   * 拿原始输入的预估分填进去会让人以为已经优化过了。
+   */
+  function setScoreAfter(value) {
+    el.scoreAfter.textContent = value;
+    el.previewScoreValue.textContent = value;
+  }
+
   function updateAnalyzeStrip() {
     const text = el.rawPrompt.value.trim();
     const family = K.familyOf(state.scenarioId);
@@ -819,7 +837,7 @@
       el.analyzeStrip.classList.add('hidden');
       if (!state.session) {
         el.scoreBefore.textContent = '—';
-        el.scoreAfter.textContent = '—';
+        setScoreAfter('—');
       }
       return;
     }
@@ -829,7 +847,7 @@
     // 还没开始拆解时，右侧面板先给出原始输入的预估分
     if (!state.session) {
       el.scoreBefore.textContent = score.total;
-      el.scoreAfter.textContent = '—';
+      setScoreAfter('—');
     }
 
     const found = [];
@@ -1373,8 +1391,14 @@
 
   function renderResult(result) {
     const s = result;
-    el.resultSummary.textContent =
-      t('经过 {rounds} 轮拆解，你一共做了 {answers} 个决定，{family}的完整度从 {before} 分提升到 {after} 分。', {
+    // 一个决定都没做（全程「拿不准」）时，「完整度从 11 分提升到 11 分」是句假话，
+    // 而下面那句「你的原始描述已经相当完整」更假 —— 它本来是给「原文确实写得好」
+    // 用的。这时候唯一诚实的说法是「你什么都没选」。
+    // 用的是既有的那句 key（六个语种都译过），不新增文案。
+    const untouched = !s.decisions.length;
+    el.resultSummary.textContent = untouched
+      ? t('还没有做出任何选择。')
+      : t('经过 {rounds} 轮拆解，你一共做了 {answers} 个决定，{family}的完整度从 {before} 分提升到 {after} 分。', {
         rounds: s.rounds,
         answers: s.answerCount,
         family: familyNoun(s.family),
@@ -1383,18 +1407,23 @@
       });
 
     el.improveGrid.innerHTML = '';
-    if (!s.improvements.length) {
-      el.improveGrid.innerHTML = t('<div class="improve-item"><div class="i-label">你的原始描述已经相当完整</div></div>');
-    } else {
-      s.improvements.forEach((item) => {
-        const node = document.createElement('div');
-        node.className = 'improve-item';
-        node.innerHTML = `
+    // 没做选择就没有「补齐项」可列。藏起来，而不是留一个空网格
+    // （空网格看着像加载失败，比不显示更让人怀疑）。
+    el.improveGrid.classList.toggle('hidden', untouched);
+    if (!untouched) {
+      if (!s.improvements.length) {
+        el.improveGrid.innerHTML = t('<div class="improve-item"><div class="i-label">你的原始描述已经相当完整</div></div>');
+      } else {
+        s.improvements.forEach((item) => {
+          const node = document.createElement('div');
+          node.className = 'improve-item';
+          node.innerHTML = `
           <div class="i-label">${escapeHtml(item.label)}</div>
           <div class="i-bar"><div class="i-fill" style="width:${Math.round((item.to / item.weight) * 100)}%"></div></div>
           <div class="i-delta">${t('{from} → {to} 分', { from: item.from, to: item.to })}</div>`;
-        el.improveGrid.appendChild(node);
-      });
+          el.improveGrid.appendChild(node);
+        });
+      }
     }
 
     paintPrompt(el.finalPrompt, s.promptText);
@@ -2375,7 +2404,7 @@
   function updatePreview() {
     if (!state.session) {
       el.scoreBefore.textContent = '—';
-      el.scoreAfter.textContent = '—';
+      setScoreAfter('—');
       el.previewRound.textContent = t('未开始');
       state.decisionSig = '';
       el.decisionList.innerHTML = t('<div class="placeholder-note" style="padding:14px 6px">还没有做出任何选择。</div>');
@@ -2387,7 +2416,7 @@
     const view = Engine.finalize(merged);
 
     el.scoreBefore.textContent = state.session.scoreBefore.total;
-    el.scoreAfter.textContent = view.scoreAfter.total;
+    setScoreAfter(view.scoreAfter.total);
 
     if (!view.decisions.length) {
       const empty = t('<div class="placeholder-note" style="padding:14px 6px">还没有做出任何选择。</div>');

@@ -33,9 +33,18 @@
 
     <div class="topbar-spacer"></div>
 
+    <!-- ⚠️ 徽标里**不能**给最外层那个 span 加 data-i18n：窄屏那条
+         `.topbar .icon-toggle > span[data-i18n] { display: none }` 会连它
+         一起收掉（它正是「预览」那个文字标签的兄弟）。单位挂在内层
+         span 上，它是孙节点，不匹配那条选择器。
+         值本身由 workspace.js 的 setScoreAfter 写，和侧栏「当前得分」同源。
+         **常驻显示**（还没开始拆解时是「— 分」），不是有了分数才冒出来：
+         ① 顶栏宽度预算那条断言量的是默认状态，收起来它就量不到徽标，
+            等于给顶栏留了个「看不见的加宽」；② 常驻也省得开题时按钮跳一下。 -->
     <button class="btn btn-sm icon-toggle" id="previewToggle" title="实时预览" aria-label="实时预览" data-i18n-attr="title,aria-label">
       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
       <span data-i18n>预览</span>
+      <span class="score-badge" id="previewScore"><span id="previewScoreValue">—</span><span data-i18n="unit.score">分</span></span>
     </button>
 
     <button class="btn btn-sm" id="newBtn" title="新的 Prompt" aria-label="新的 Prompt" data-i18n-attr="title,aria-label">

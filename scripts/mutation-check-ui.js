@@ -376,6 +376,37 @@ const MUTATIONS = [
     expect: /一行最多一个中点/,
     suite: 'check-landing.js',
   },
+
+  /* ---------------- H5 上的「Prompt 得分」（09-26，用户报的缺陷） ----------------
+     背景：980px 以下右侧预览栏被收成抽屉，而**分数只存在于那个抽屉里** ——
+     结果区一张分数卡都没有，整个问答过程用户都看不见分数。
+     修法是把「当前得分」镜像进顶栏那个徽标（#previewScore）。
+     下面两条各守一层：
+       ① 徽标真的在屏幕上（CSS 一藏就回到原缺陷）；
+       ② 徽标真的在更新（只写侧栏、徽标停在「—」等于没修）。
+     ⚠️ 第二条是这类「镜像显示」最容易坏的地方：结构在、位置对、就是不动。
+        只量「有没有那个元素」的话，它永远是绿的。 */
+  {
+    name: '顶栏得分徽标被 CSS 藏起来（H5 又看不见得分了）',
+    file: CSS,
+    from: '.score-badge {\n  display: inline-flex;',
+    to: '.score-badge {\n  display: none;',
+    expect: /390px 上顶栏就有得分徽标/,
+  },
+  {
+    name: '顶栏得分徽标不再更新（只写侧栏，徽标永远停在「—」）',
+    file: WORKSPACE,
+    from: '  function setScoreAfter(value) {\n    el.scoreAfter.textContent = value;\n    el.previewScoreValue.textContent = value;\n  }',
+    to: '  function setScoreAfter(value) {\n    el.scoreAfter.textContent = value;\n  }',
+    expect: /开题之后徽标立刻有分数/,
+  },
+  {
+    name: '结果区对「什么都没选」照旧写「完整度从 X 分提升到 Y 分」',
+    file: WORKSPACE,
+    from: '    const untouched = !s.decisions.length;',
+    to: '    const untouched = false;',
+    expect: /结果区不写「完整度从 X 分提升到 Y 分」这句假话/,
+  },
 ];
 
 /* ------------------------------------------------------------------ *

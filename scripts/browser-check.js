@@ -4637,6 +4637,215 @@ async function main() {
         + '，允许到 ' + (tbLast.boxRight - tbLast.padR)));
     await cdp.shot(path.join(SHOT_DIR, '24-mobile-topbar-300-es.png'));
 
+    /* ---- H5 上「Prompt 得分」必须看得见 ----
+       用户报的第二个缺陷：「H5 里没看见 prompt 得分」。复现下来是这样：
+       980px 以下右侧预览栏被收成抽屉（`.preview { display: none }`），
+       而**分数只存在于那个抽屉里** —— 结果区一张分数卡都没有，只有一句
+       「完整度从 11 分提升到 93 分」。也就是说整个问答过程里用户都看不见
+       分数，除非他自己发现顶栏那个「预览」按钮。实测：结果区
+       `#stageResult` 里 `#scoreAfter / .score-row / .score-card` 一个都没有。
+
+       修法：把「当前得分」镜像进顶栏那个按钮里的徽标（`#previewScore`）。
+       徽标挂在 `#previewToggle` 里，所以 980px 以上它跟着那个按钮一起
+       消失（桌面端右侧栏本来就有两张得分卡，不重复）。
+
+       ⚠️ 这里**分两个时刻**量（刚进入 / 把主区滚到底）—— 只量一次的话，
+       「徽标跟着内容滚走了」这种坏法完全测不出来。而结构断言
+       （innerHTML 里有没有那个 span）对「在不在屏幕里」是完全免疫的，
+       这一条已经栽过一次（09-23 那次的工具条）。 */
+    await cdp.send('Emulation.setDeviceMetricsOverride',
+      { width: 390, height: 844, deviceScaleFactor: 2, mobile: true });
+    await cdp.goto(BASE + '/app.html?guest=1');
+    await sleep(700);
+
+    /* 源码里写在模板字符串里，所以 `\\s` 要写成 `\\\\s`（先过模板字符串那一层）。
+       这不是笔误 —— 直接写 `\s` 的话，注入进去的字符串里就只剩一个 `s`，
+       正则变成 /s+/，什么都匹配不上，而且不报错。 */
+    const BADGE_PROBE = `(() => {
+      const wrap = document.getElementById('previewScore');
+      const val = document.getElementById('previewScoreValue');
+      const btn = document.getElementById('previewToggle');
+      const side = document.getElementById('scoreAfter');
+      if (!wrap || !val || !btn) return null;
+      const r = wrap.getBoundingClientRect();
+      const de = document.documentElement;
+      return {
+        shown: wrap.offsetParent !== null,
+        text: wrap.textContent.replace(/\\s+/g, ' ').trim(),
+        value: val.textContent.trim(),
+        side: side ? side.textContent.trim() : null,
+        top: Math.round(r.top), bottom: Math.round(r.bottom), right: Math.round(r.right),
+        inView: wrap.offsetParent !== null && r.bottom > 0 && r.top < window.innerHeight
+          && r.right <= de.clientWidth,
+        vh: window.innerHeight,
+      };
+    })()`;
+
+    const badgeIdle = await cdp.eval(BADGE_PROBE);
+    check('（前置）顶栏量到了得分徽标（选择器写错这条就永远是绿的）',
+      !!badgeIdle, badgeIdle ? badgeIdle.text : '没找到 #previewScore');
+    check('390px 上顶栏就有得分徽标，且在视口内（H5 报「看不见得分」的就是这一条）',
+      !!badgeIdle && badgeIdle.shown && badgeIdle.inView,
+      badgeIdle && ('显示=' + badgeIdle.shown + ' 位置 ' + badgeIdle.top + '~' + badgeIdle.bottom
+        + ' 右缘 ' + badgeIdle.right + ' / 视口高 ' + badgeIdle.vh));
+    check('还没开始拆解时徽标是「—」，不拿原始输入的预估分充数',
+      !!badgeIdle && badgeIdle.value === '—', badgeIdle && badgeIdle.value);
+
+    await cdp.eval(`(() => {
+      const ta = document.getElementById('rawPrompt');
+      ta.value = '帮我写一封给客户的道歉邮件';
+      ta.dispatchEvent(new Event('input', { bubbles: true }));
+      document.getElementById('startBtn').click();
+      return true;
+    })()`);
+    await sleep(800);
+    const badgeRound = await cdp.eval(BADGE_PROBE);
+    const asNum = (s) => (/^\d+$/.test(String(s)) ? Number(s) : NaN);
+    check('开题之后徽标立刻有分数（不是一直挂着「—」）',
+      !!badgeRound && asNum(badgeRound.value) > 0, badgeRound && badgeRound.value);
+    check('徽标和侧栏「当前得分」是同一个数（两处各写各的迟早会岔）',
+      !!badgeRound && badgeRound.value === badgeRound.side,
+      badgeRound && ('徽标 ' + badgeRound.value + ' / 侧栏 ' + badgeRound.side));
+
+    await cdp.eval(`(() => {
+      const blocks = Array.from(document.querySelectorAll('#questionsHost .q-block'));
+      blocks.forEach((b) => {
+        const o = b.querySelector('.option-btn:not(.is-skip):not(.is-custom)');
+        if (o) o.click();
+      });
+      return blocks.length;
+    })()`);
+    await sleep(350);
+    await cdp.eval('document.getElementById("nextBtn").click()');
+    await sleep(800);
+    const badgeAnswered = await cdp.eval(BADGE_PROBE);
+    check('答一轮之后徽标上的分数跟着涨（不是只在开题那一刻刷一次）',
+      !!badgeAnswered && asNum(badgeAnswered.value) > asNum(badgeRound && badgeRound.value),
+      badgeRound && badgeAnswered && (badgeRound.value + ' → ' + badgeAnswered.value));
+
+    await cdp.eval(`(() => {
+      const sc = document.getElementById('mainScroll');
+      if (sc) sc.scrollTop = sc.scrollHeight;
+      else window.scrollTo(0, document.body.scrollHeight);
+      return true;
+    })()`);
+    await sleep(400);
+    const badgeScrolled = await cdp.eval(BADGE_PROBE);
+    check('把主区滚到底之后徽标还在视口里（顶栏不跟着内容滚走）',
+      !!badgeScrolled && badgeScrolled.shown && badgeScrolled.inView,
+      badgeScrolled && ('位置 ' + badgeScrolled.top + '~' + badgeScrolled.bottom
+        + ' / 视口高 ' + badgeScrolled.vh));
+
+    /* 徽标挂在「预览」按钮里，点它就是开抽屉 —— 它不该是个点不动的死标签。 */
+    await cdp.eval('document.getElementById("previewToggle").click()');
+    await sleep(500);
+    const badgeDrawer = await cdp.eval(`(() => {
+      const pv = document.querySelector('.preview');
+      const side = document.getElementById('scoreAfter');
+      if (!pv || !side) return null;
+      const r = side.getBoundingClientRect();
+      return {
+        open: pv.classList.contains('open'),
+        display: getComputedStyle(pv).display,
+        shown: side.offsetParent !== null,
+        inView: side.offsetParent !== null && r.bottom > 0 && r.top < window.innerHeight,
+        top: Math.round(r.top), bottom: Math.round(r.bottom),
+      };
+    })()`);
+    check('点顶栏徽标（同一个按钮）能拉出预览抽屉',
+      !!badgeDrawer && badgeDrawer.open && badgeDrawer.display === 'flex',
+      badgeDrawer && badgeDrawer.display);
+    check('抽屉里「当前得分」在视口内（点开就看得见，不用再滚一次）',
+      !!badgeDrawer && badgeDrawer.shown && badgeDrawer.inView,
+      badgeDrawer && ('位置 ' + badgeDrawer.top + '~' + badgeDrawer.bottom));
+    await cdp.shot(path.join(SHOT_DIR, '25-mobile-score-badge.png'));
+
+    /* 桌面端不许重复：右侧栏本来就有「原始 Prompt / 当前得分」两张卡。 */
+    await cdp.send('Emulation.setDeviceMetricsOverride',
+      { width: 1280, height: 900, deviceScaleFactor: 1, mobile: false });
+    await sleep(450);
+    const badgeDesk = await cdp.eval(`(() => {
+      const btn = document.getElementById('previewToggle');
+      const wrap = document.getElementById('previewScore');
+      const side = document.getElementById('scoreAfter');
+      if (!btn || !wrap || !side) return null;
+      return {
+        btnDisplay: getComputedStyle(btn).display,
+        badgeShown: wrap.offsetParent !== null,
+        sideShown: side.offsetParent !== null,
+      };
+    })()`);
+    check('桌面宽度下徽标不显示，而侧栏得分卡在（不重复显示同一个数）',
+      !!badgeDesk && !badgeDesk.badgeShown && badgeDesk.sideShown,
+      badgeDesk && ('按钮 ' + badgeDesk.btnDisplay + ' / 徽标 ' + badgeDesk.badgeShown
+        + ' / 侧栏 ' + badgeDesk.sideShown));
+
+    /* ---- 全程选「拿不准」：分数原地不动，结果区也不许说假话 ----
+       这是用户报的第一个缺陷的**界面侧**那一半。引擎那边由 test-engine.js
+       的四之十守着（「一题不答 / 全选拿不准时分数不许动」），这里守的是
+       **用户实际看到的那两样东西**：
+         · 侧栏「原始 Prompt / 当前得分」两个数必须一样；
+         · 结果区那句话 —— 原来会写「完整度从 11 分提升到 11 分」，
+           下面还列一句「你的原始描述已经相当完整」，两句都是假的。
+       界面侧的假话引擎侧测不出来（分数是对的，话是错的），所以必须单独守。 */
+    await cdp.goto(BASE + '/app.html?guest=1');
+    await sleep(700);
+    await cdp.eval(`(() => {
+      const ta = document.getElementById('rawPrompt');
+      ta.value = '帮我写一封给客户的道歉邮件';
+      ta.dispatchEvent(new Event('input', { bubbles: true }));
+      document.getElementById('startBtn').click();
+      return true;
+    })()`);
+    await sleep(500);
+
+    let skipRound = 0;
+    while (skipRound < 15) {
+      if (await cdp.eval('!document.getElementById("stageResult").classList.contains("hidden")')) break;
+      if (!(await cdp.eval('document.querySelectorAll(".q-block").length'))) break;
+      skipRound += 1;
+      await cdp.eval(`(() => {
+        document.querySelectorAll('.q-block').forEach((b) => {
+          const s = b.querySelector('.option-btn.is-skip');
+          if (s) s.click();
+        });
+        return true;
+      })()`);
+      await cdp.eval('document.getElementById("nextBtn").click()');
+      await sleep(280);
+    }
+    check('（前置）全程选「拿不准」也能走到结果区（一题都不选就走不到，这条就测不到东西）',
+      skipRound >= 5, '轮数=' + skipRound);
+
+    const skipView = await cdp.eval(`(() => {
+      const sum = document.getElementById('resultSummary');
+      const grid = document.getElementById('improveGrid');
+      const before = document.getElementById('scoreBefore');
+      const after = document.getElementById('scoreAfter');
+      const finalText = document.getElementById('finalPrompt');
+      return {
+        summary: sum ? sum.textContent.replace(/\\s+/g, ' ').trim() : null,
+        gridHidden: grid ? grid.classList.contains('hidden') : null,
+        gridShown: grid ? grid.offsetParent !== null : null,
+        before: before ? before.textContent.trim() : null,
+        after: after ? after.textContent.trim() : null,
+        keepsOriginal: finalText ? finalText.textContent.indexOf('道歉邮件') !== -1 : null,
+      };
+    })()`);
+    check('全程选「拿不准」时侧栏两个分数一样（分数没替不存在的内容背书）',
+      !!skipView && skipView.before === skipView.after,
+      skipView && (skipView.before + ' → ' + skipView.after));
+    check('结果区不写「完整度从 X 分提升到 Y 分」这句假话',
+      !!skipView && !/提升到/.test(skipView.summary || ''), skipView && skipView.summary);
+    check('结果区说的是「还没有做出任何选择」',
+      !!skipView && /还没有做出任何选择/.test(skipView.summary || ''),
+      skipView && skipView.summary);
+    check('没做选择时「补齐项」整块收起来（空网格看着像坏了）',
+      !!skipView && skipView.gridHidden === true && skipView.gridShown === false,
+      skipView && ('hidden=' + skipView.gridHidden + ' / 显示=' + skipView.gridShown));
+    check('用户的原话仍在最终 Prompt 里（分数不动不等于成品空了）',
+      !!skipView && skipView.keepsOriginal === true, skipView && String(skipView.keepsOriginal));
+
     await cdp.send('Emulation.setTouchEmulationEnabled', { enabled: false });
     await cdp.send('Emulation.clearDeviceMetricsOverride');
     await cdp.goto(BASE + '/app.html?guest=1');
