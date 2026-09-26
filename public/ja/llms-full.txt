@@ -10,9 +10,11 @@ PromptLens は Prompt を書くことを一歩ずつの選択に変えます。�
 
 あなたの要望を伝えてください。PromptLens がそれを、役割・想定読者・出力形式・トーン・制約条件といった具体的な選択肢に、一層ずつ分解します。決めるのはすべてあなたです。数ラウンドのあと、構造の整った、本当にあなたのものになるプロンプトが手に入ります。「AI っぽい」テンプレートではなく。
 
-[私の要望を分解する](https://promptlens.example.com/login.html) [まず仕組みを見てみる](https://promptlens.example.com/ja/#how)
+[登録なしで分解を始める](https://promptlens.example.com/app.html?guest=1) [まず仕組みを見てみる](https://promptlens.example.com/ja/#how)
 
 無料で使える · クレジットカード不要 · テキスト / 画像 / 動画の3シーンに対応
+
+登録なしのお試しは記録を保存しません。ページを離れると消去されます。 [ログイン / 登録](https://promptlens.example.com/login.html)
 
 ### 仕組み
 
@@ -92,4 +94,4 @@ ChatGPT は書いてくれます。PromptLens は一緒に決めます。前者�
 
 最初のラウンドの質問は、だいたい2分で終わります。
 
-[PromptLens を始める](https://promptlens.example.com/login.html)
+[登録なしで PromptLens を試す](https://promptlens.example.com/app.html?guest=1)

@@ -10,9 +10,11 @@ PromptLens turns writing a prompt into a series of choices — role, audience, f
 
 Say what you need, and PromptLens breaks it into concrete choices, one layer at a time — role, audience, format, tone, constraints. Every decision is yours to make. A few rounds later you have a prompt that is complete, structured and genuinely your own, rather than a template that reeks of AI.
 
-[Break down what I need](https://promptlens.example.com/login.html) [See how it works first](https://promptlens.example.com/en/#how)
+[Start without signing up](https://promptlens.example.com/app.html?guest=1) [See how it works first](https://promptlens.example.com/en/#how)
 
 Free to use · No credit card · Text, image and video
+
+Guest use saves no records — everything is cleared when you leave the page. [Log in / Sign up](https://promptlens.example.com/login.html)
 
 ### How it works
 
@@ -92,4 +94,4 @@ No payment needed. Your breakdown history is saved under your own account and is
 
 The first round of questions takes about two minutes.
 
-[Get started with PromptLens](https://promptlens.example.com/login.html)
+[Try PromptLens without signing up](https://promptlens.example.com/app.html?guest=1)

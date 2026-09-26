@@ -90,8 +90,23 @@
      file:// 下没有路由重写，只能直接开 login.html。 */
   const HOME_URL = LOCAL ? 'login.html' : '/login';
 
+  /* ---- 免注册模式 ----
+     用**显式开关** `?guest=1` 判定，不是「没有会话就当游客」。
+
+     为什么必须显式：会话过期时如果静默降级成游客，用户会以为自己还在用账号，
+     而保存已经悄悄停了 —— 这是这个项目里反复出现的静默失效。
+     显式开关下，会话过期仍然照旧跳登录页，是**响的**。 */
+  const GUEST = /[?&]guest=1(&|$)/.test(location.search);
+
+  /* 免注册 → 登录的交接暂存。
+     用 sessionStorage 而不是 localStorage：它只活在**当前标签页**，
+     关掉就没了 —— 所以「退出即清空」这条承诺仍然成立，
+     不会因为多了交接功能而漏出一个持久化的口子。 */
+  const GUEST_HANDOFF_KEY = 'promptlens.guest.handoff.v1';
+
   const state = {
     user: null,
+    guest: false,
     scenarioId: 'general',
     scenarioAuto: true,
     session: null,
@@ -132,6 +147,9 @@
     historyList: $('historyList'),
     historyCount: $('historyCount'),
     storageNote: $('storageNote'),
+    guestLoginBtn: $('guestLoginBtn'),
+    guestNotice: $('guestNotice'),
+    guestNoticeLogin: $('guestNoticeLogin'),
 
     stageInput: $('stageInput'),
     stageRounds: $('stageRounds'),
@@ -427,35 +445,176 @@
    * ================================================================ */
 
   async function boot() {
+    let user = null;
     try {
       const res = await API.me();
-      if (!res.user) {
+      user = res.user || null;
+    } catch (err) {
+      /* 服务端连不上。**游客模式一个字节都不落盘，本来就不需要服务端**，
+         所以照常放行；不是游客就还按老规矩跳登录页 ——
+         让连不上服务端的人「用起来」，他会以为自己在被保存。 */
+      if (!GUEST) {
         location.href = HOME_URL;
         return;
       }
-      state.user = res.user;
-    } catch (err) {
+    }
+
+    /* 没有会话、又不是游客 → 跳登录页（老行为，保持不变）。 */
+    if (!user && !GUEST) {
       location.href = HOME_URL;
       return;
     }
 
-    el.userName.textContent = state.user.displayName;
-    el.userAvatar.textContent = state.user.displayName.slice(0, 1).toUpperCase();
-    el.ddName.textContent = state.user.displayName;
-    el.ddMeta.textContent = '@' + state.user.username;
+    state.user = user;
+    state.guest = !user;
 
-    if (API.isLocalMode) {
-      el.envBadge.classList.remove('hidden');
-      el.storageNote.textContent = t('当前以本地文件方式打开，账号与记录保存在这台电脑的浏览器里。启动 Node 服务后可切换为服务端存储。');
+    if (state.guest) {
+      applyGuestUI();
     } else {
-      el.storageNote.textContent = t('账号与记录保存在服务端的本地数据文件中。');
+      el.userName.textContent = user.displayName;
+      el.userAvatar.textContent = user.displayName.slice(0, 1).toUpperCase();
+      el.ddName.textContent = user.displayName;
+      el.ddMeta.textContent = '@' + user.username;
+      el.storageNote.textContent = API.isLocalMode
+        ? t('当前以本地文件方式打开，账号与记录保存在这台电脑的浏览器里。启动 Node 服务后可切换为服务端存储。')
+        : t('账号与记录保存在服务端的本地数据文件中。');
+      if (API.isLocalMode) el.envBadge.classList.remove('hidden');
     }
 
     // 初始状态（空输入 + 自动识别）下它输出的提示语和 app.html 里的默认文案一致
     syncScenarioUI();
-    await loadProjects();
     bindEvents();
+
+    if (state.guest) {
+      /* 游客没有历史可读 —— 连请求都不发。
+         守卫放在客户端而不是靠服务端拒绝：服务端一旦被绕过（或换了实现），
+         这里会**静默地**开始存东西，而用户还以为是免注册模式。 */
+      renderHistory();
+    } else {
+      await loadProjects();
+      // 免注册时做了一半、然后去登录了：把那份进度接回来（只接一次）
+      const handoff = takeGuestHandoff();
+      if (handoff) restoreHandoff(handoff);
+    }
+
     updatePreview();
+  }
+
+  /**
+   * 游客模式的界面。
+   *
+   * 核心要求是**看得见**：如果「不保存」只体现在「侧栏一直是空的」，
+   * 用户不会把它归因到模式上 —— 他会以为自己还没做完，或者记录丢了。
+   * 所以顶栏要有标识、侧栏要写明原因、结果出来时还要再说一次。
+   */
+  function applyGuestUI() {
+    el.userName.textContent = t('未登录');
+    el.userAvatar.textContent = '·';
+    el.ddName.textContent = t('免注册模式');
+    el.ddMeta.textContent = t('这次的内容不会保存');
+
+    el.envBadge.textContent = t('免注册模式 · 不保存记录');
+    el.envBadge.classList.remove('hidden');
+
+    el.storageNote.textContent = t('免注册模式下不会保存任何记录，离开页面即清空。登录后才会存进你的账号。');
+
+    // 游客没有记录可导出
+    el.exportBtn.classList.add('hidden');
+    // 「退出登录」对游客没有意义，换成「退出并清空」
+    el.logoutBtn.textContent = t('退出并清空');
+    if (el.guestLoginBtn) el.guestLoginBtn.classList.remove('hidden');
+  }
+
+  /**
+   * 免注册 → 登录。先把当前进度暂存，再跳登录页。
+   *
+   * 为什么值得做：用户很可能已经答完 7 轮才决定注册。
+   * 不带过去的话他得从头再做一遍 —— 这一步流失掉的人比想象中多。
+   */
+  function guestLogin() {
+    stashGuestHandoff();
+    location.href = HOME_URL;
+  }
+
+  /** 把游客当前的进度存进 sessionStorage（只活在本标签页）。 */
+  function stashGuestHandoff() {
+    if (!state.guest || !state.session) return;
+    try {
+      window.sessionStorage.setItem(GUEST_HANDOFF_KEY, JSON.stringify({
+        v: 1,
+        savedAt: Date.now(),
+        scenarioId: state.scenarioId,
+        scenarioAuto: state.scenarioAuto,
+        decisionSig: state.decisionSig,
+        session: state.session,
+        batch: state.batch,
+        draft: state.draft,
+        snapshots: state.snapshots,
+        result: state.result,
+      }));
+    } catch (err) {
+      /* 存不下（隐私模式 / 配额满）也不能挡住跳转 ——
+         大不了登录后重做一遍，比卡在按钮上强。 */
+    }
+  }
+
+  /**
+   * 取回交接数据，**取完立刻删**。
+   *
+   * 为什么必须立刻删：留着的话，下次再开 app.html 会把旧进度又倒回来一遍，
+   * 用户会以为「我明明重新开始了，怎么又回来了」—— 而且这个 bug 只在
+   * 「用过一次免注册并且登录过」之后才出现，很难复现。
+   */
+  function takeGuestHandoff() {
+    let raw = null;
+    try {
+      raw = window.sessionStorage.getItem(GUEST_HANDOFF_KEY);
+      window.sessionStorage.removeItem(GUEST_HANDOFF_KEY);
+    } catch (err) {
+      return null;
+    }
+    if (!raw) return null;
+    try {
+      const data = JSON.parse(raw);
+      if (!data || data.v !== 1 || !data.session) return null;
+      return data;
+    } catch (err) {
+      return null;
+    }
+  }
+
+  /** 把交接回来的进度还原到界面上（各阶段照 startFlow / finishFlow 的走法）。 */
+  function restoreHandoff(data) {
+    state.session = data.session;
+    state.batch = data.batch || [];
+    state.draft = data.draft || {};
+    state.snapshots = data.snapshots || [];
+    state.result = data.result || null;
+    state.savedProjectId = null;
+    state.activeProjectId = null;
+
+    el.rawPrompt.value = state.session.originalPrompt || '';
+    onPromptInput();                       // 字数 / 识别条 / 自动场景，一次刷齐
+    state.scenarioId = data.scenarioId || state.scenarioId;
+    state.scenarioAuto = data.scenarioAuto !== false;
+    state.decisionSig = data.decisionSig || '';
+    syncScenarioUI();
+
+    if (state.result) {
+      renderResult(state.result);
+      showStage('result');
+      syncPromptOverflow();
+      revealPrompt();
+    } else if (state.batch.length) {
+      renderBatch(state.batch);
+      showStage('rounds');
+    } else {
+      showStage('input');
+    }
+
+    /* 交接过来的这份**还没存过**，得当场说清楚，
+       否则用户会以为它已经在账号里了。 */
+    toast(t('已把免注册时做的选择带过来了，这次会存进你的账号'));
   }
 
   function bindEvents() {
@@ -466,9 +625,19 @@
     document.addEventListener('click', () => el.userDropdown.classList.remove('open'));
 
     el.logoutBtn.addEventListener('click', async () => {
+      if (state.guest) {
+        /* 游客没有会话可注销 —— 这个按钮对他的作用是「把这次的内容丢掉」，
+           所以文案也换成了「退出并清空」。清完回落地页。 */
+        resetFlow();
+        location.href = LOCAL ? 'index.html' : '/';
+        return;
+      }
       await API.logout();
       location.href = HOME_URL;
     });
+
+    if (el.guestLoginBtn) el.guestLoginBtn.addEventListener('click', guestLogin);
+    if (el.guestNoticeLogin) el.guestNoticeLogin.addEventListener('click', guestLogin);
 
     el.exportBtn.addEventListener('click', exportAll);
     el.newBtn.addEventListener('click', () => {
@@ -698,6 +867,8 @@
     el.promptExpand.classList.add('hidden');
     // 上一轮的分镜表编辑按钮也不能带到下一轮（此刻 session 已清空，只能直接藏）
     if (el.editBoardBtn) el.editBoardBtn.classList.add('hidden');
+    // 「这次没保存」的提示属于上一份结果，重新开始时必须收掉
+    if (el.guestNotice) el.guestNotice.classList.add('hidden');
     state.scenarioAuto = true;
     state.scenarioId = 'general';
     // 网格高亮和提示语交给 showStage('input') → syncScenarioUI 统一处理，
@@ -2249,6 +2420,15 @@
   }
 
   function renderHistory() {
+    /* 游客：整块换成「这里为什么是空的」。
+       只留一个空列表的话，用户会以为是没做完、或者记录丢了 ——
+       必须写明这是**模式**决定的，并给出出口。 */
+    if (state.guest) {
+      el.historyCount.textContent = '—';
+      el.historyList.innerHTML = t('<div class="sidebar-empty">免注册模式不保存记录。<br>这次做的选择在离开页面后会被清空。<br>登录之后才会存进你的账号。</div>');
+      return;
+    }
+
     el.historyCount.textContent = state.projects.length;
     if (!state.projects.length) {
       el.historyList.innerHTML = t('<div class="sidebar-empty">还没有保存过 Prompt。<br>完成一次拆解后会自动存进这里。</div>');
@@ -2412,6 +2592,16 @@
 
   async function saveProject() {
     if (!state.session || !state.result) return;
+
+    if (state.guest) {
+      /* 不落盘 —— 但**不能静默**。
+         用户刚做完好几轮选择，如果只是「没保存」而界面什么都不说，
+         他会默认它存下了，等下次回来发现没有才意识到 ——
+         这正是这个项目里反复出现的静默失效。所以当场、可见地说明。 */
+      if (el.guestNotice) el.guestNotice.classList.remove('hidden');
+      return;
+    }
+
     const title = state.session.originalPrompt.replace(/[\r\n]+/g, ' ').slice(0, 40) || t('未命名 Prompt');
     const payload = {
       title,

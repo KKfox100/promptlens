@@ -3641,6 +3641,82 @@ async function main() {
       return leaks;
     };
 
+    /* ---------------- 12.0 登录页也要扫 ----------------
+       ⚠️ 登录页是**唯一一个不跑 app.html 那套脚本**的页面，而它上面有 24 个
+       data-i18n 和 14 处 T('…')（它自己起的别名，见下面的静态扫描那一节）。
+       不扫它的后果不是「少几条」，是**整页**：登录页从来就没进过
+       _ui-keys.json，于是生成器眼里它「不存在」，五个语种的 ui.*.js 里
+       一条登录页文案都没有 —— 英文站上点「Log in / Sign up」跳过去的
+       是一整页中文，而且所有检查都是绿的。**这是最标准的静默失效。**
+
+       为什么不能直接 goto('/login')：登录态下 login.html 里的 API.me()
+       一成功就把人弹回工作台，哨兵表再灵也量不到它。所以照 [11.6] 那套来 ——
+       只在**浏览器侧**摘掉 cookie，服务端会话原封不动，量完把同一个 token
+       写回去。（09-23 踩过：那次调了 /api/auth/logout，token 永久失效，
+       整节 [12] 跑在登录页上，报出来的是「哨兵文案表没生效」，指向完全
+       不相干的地方。） */
+    /* ⚠️ 界面 key 要**跨文档累加**：__PL_UI_KEYS__ 是每个文档各一份的
+       （addScriptToEvaluateOnNewDocument 每次导航都重跑，seen 是新对象）。
+       登录页和 app.html 是两个文档，读完必须自己合并，否则导航一走就丢。 */
+    const uiKeysMerged = Object.create(null);
+    const collectKeys = async () => {
+      const raw = await cdp.eval('JSON.stringify(window.__PL_UI_KEYS__ || {})');
+      const obj = JSON.parse(raw);
+      let n = 0;
+      Object.keys(obj).forEach((k) => { uiKeysMerged[k] = (uiKeysMerged[k] || 0) + obj[k]; n += 1; });
+      return n;
+    };
+
+    await cdp.send('Network.enable');
+    const ljJar = await cdp.send('Network.getCookies', { urls: [BASE + '/'] });
+    const ljSess = (ljJar.cookies || []).find((c) => c.name === 'pl_session') || null;
+    check('（前置）扫登录页之前拿到了会话 cookie（量完要原样写回）', !!ljSess, ljSess ? '有' : '没有');
+    if (ljSess) await cdp.send('Network.deleteCookies', { name: 'pl_session', url: BASE + '/' });
+
+    await cdp.goto(BASE + '/login');
+    await sleep(700);
+    check('（前置）登录页上哨兵文案表已生效（这一节要是跑在工作台上就全白测了）',
+      await cdp.eval('window.__PL_PSEUDO_UI__ === true && !!document.querySelector(".auth-shell")'),
+      await cdp.eval('location.pathname + " " + document.title'));
+    await scanLeaks('登录页');
+
+    /* 登录页有**两个状态**，只扫一个等于只扫一半：切到注册标签会换掉
+       标题、说明、提交按钮，还有底部那句「已经有账号了？去登录」。
+       ⚠️ 后面这两句是**拼出来**的（`T(question + '{link}')`），
+       静态扫描看不见 —— 不切标签它们就永远进不了清单，
+       于是英文用户一切到注册标签就看到两句中文。 */
+    /* ⚠️ 选择器里的引号必须用**模板字符串**包，不能写成单引号串里的 \" ——
+       JS 解析字符串字面量时会把 \" 变成 "，发到页面上就成了
+       `querySelector(".tab[data-tab="register"]")`，直接 SyntaxError。
+       症状是「页面异常: missing ) after argument list」，而且整节从这里断掉。 */
+    await cdp.eval(`document.querySelector('.tab[data-tab="register"]').click()`);
+    await sleep(250);
+    await scanLeaks('登录页·注册');
+    const loginKeyCount = await collectKeys();
+    /* 这条守的是「扫了等于没扫」：清单是空的、或者导航之后才去读，
+       都会让登录页的 key 一条都进不来，而别的断言照样全绿。 */
+    check('（前置）登录页真的贡献了界面 key（不然扫了等于没扫）',
+      loginKeyCount >= 20, loginKeyCount + ' 条');
+
+    /* 会话原样写回，并**回读验一次** —— 只调 setCookie 不看结果的话，
+       cookie 被拒了也不知道，后面几节会莫名其妙地跑在未登录态上。 */
+    if (ljSess) {
+      const ljBack = { name: ljSess.name, value: ljSess.value, url: BASE + '/' };
+      if (typeof ljSess.sameSite === 'string') ljBack.sameSite = ljSess.sameSite;
+      if (ljSess.httpOnly) ljBack.httpOnly = true;
+      await cdp.send('Network.setCookie', ljBack);
+      const ljAgain = await cdp.send('Network.getCookies', { urls: [BASE + '/'] });
+      check('（前置）会话 cookie 已原样写回（下面的界面都靠登录态）',
+        (ljAgain.cookies || []).some((c) => c.name === 'pl_session' && c.value === ljSess.value),
+        (ljAgain.cookies || []).map((c) => c.name).join(','));
+    }
+
+    await cdp.goto(BASE + '/app.html');
+    await sleep(700);
+    check('（前置）扫完登录页回到了工作台（登录态还在）',
+      await cdp.eval('!!document.querySelector(".app-shell")'),
+      await cdp.eval('location.pathname'));
+
     // 输入页：顶栏、场景网格、分析条、按钮
     await scanLeaks('输入页');
 
@@ -3769,9 +3845,8 @@ async function main() {
        而 `t()` 只要被调用就一定经过哨兵表 —— 跑一遍六个界面，
        清单自然是全的。**它是运行时的事实，不是源码的猜测。**
        唯一的前提是六个界面都要走到（上面的 scanLeaks 已经保证）。 */
-    const uiKeys = await cdp.eval('JSON.stringify(window.__PL_UI_KEYS__ || {})');
-    const parsed = JSON.parse(uiKeys);
-    const allKeys = Object.keys(parsed).sort();
+    await collectKeys();                      // 把 app.html 这一份并进来
+    const allKeys = Object.keys(uiKeysMerged).sort();
     const cjkKeys = allKeys.filter((k) => /[\u3000-\u303f\u4e00-\u9fff\uff01-\uff60]/.test(k));
     const outFile = path.join(__dirname, 'i18n-src', '_ui-keys.json');
     fs.mkdirSync(path.dirname(outFile), { recursive: true });
@@ -4240,6 +4315,255 @@ async function main() {
       if ((await cdp.eval('location.pathname')).indexOf('login') !== -1) { loggedOut = true; break; }
     }
     check('登出后回到登录页', loggedOut);
+
+    /* ---------------- 15. 免注册模式 ---------------- */
+    console.log('\n[15] 免注册模式');
+
+    /* 「不保存」要用两条**互相独立**的证据钉住：
+       ① 客户端：整个流程里没有向 /api/projects 发过请求；
+       ② 服务端：data/db.json 里的记录条数一条没变。
+       只查①会漏掉「从别的接口写进去」；只查②说不清是「没写」还是「写失败了」。 */
+    const DB_FILE = path.join(__dirname, '..', 'data', 'db.json');
+    const countProjects = () => {
+      try { return (JSON.parse(fs.readFileSync(DB_FILE, 'utf8')).projects || []).length; }
+      catch (e) { return -1; }
+    };
+    const projectsBefore = countProjects();
+
+    await cdp.send('Network.enable');
+    await cdp.goto(BASE + '/app.html?guest=1');
+
+    let stayedInApp = false;
+    for (let i = 0; i < 25; i += 1) {
+      await sleep(200);
+      if ((await cdp.eval('location.pathname')).indexOf('login') !== -1) break;
+      if (await cdp.eval('!!document.getElementById("guestLoginBtn") && !document.getElementById("guestLoginBtn").classList.contains("hidden")')) {
+        stayedInApp = true;
+        break;
+      }
+    }
+    check('未登录 + ?guest=1 → 留在工作台（没有被跳去登录页）', stayedInApp,
+      await cdp.eval('location.href'));
+
+    /* 标识必须**看得见**。结构对、样式对、但落在视口外，用户就是看不见 ——
+       第 10 次静默失效正是这个形状（工具条渲染全对，top:1031px 在 844px 视口外）。
+       所以这里量位置，不只量 innerHTML。 */
+    const badge = await cdp.eval(`(() => {
+      const b = document.getElementById('envBadge');
+      if (!b) return null;
+      const cs = getComputedStyle(b);
+      const r = b.getBoundingClientRect();
+      return {
+        text: b.textContent.trim(),
+        display: cs.display, visibility: cs.visibility, opacity: cs.opacity,
+        top: Math.round(r.top), bottom: Math.round(r.bottom),
+        right: Math.round(r.right), vh: window.innerHeight, vw: window.innerWidth,
+      };
+    })()`);
+    check('顶栏出现免注册标识', !!badge && /免注册/.test(badge.text), badge && badge.text);
+    check('标识真的被画出来了（不是 display:none / 透明）',
+      !!badge && badge.display !== 'none' && badge.visibility !== 'hidden' && Number(badge.opacity) > 0,
+      badge && (badge.display + ' / ' + badge.visibility + ' / ' + badge.opacity));
+    check('标识落在首屏内（在视口里，不是滚出去的那种）',
+      !!badge && badge.top >= 0 && badge.bottom <= badge.vh && badge.right <= badge.vw,
+      badge && ('top=' + badge.top + ' bottom=' + badge.bottom + ' vh=' + badge.vh
+        + ' right=' + badge.right + ' vw=' + badge.vw));
+
+    const guestSide = await cdp.eval(`(() => {
+      const list = document.getElementById('historyList');
+      const count = document.getElementById('historyCount');
+      const note = document.getElementById('storageNote');
+      return {
+        list: list.textContent.replace(/\\s+/g, ' ').trim(),
+        count: count.textContent.trim(),
+        note: note.textContent.replace(/\\s+/g, ' ').trim(),
+      };
+    })()`);
+    check('侧栏写明「不保存记录」而不是「还没有记录」',
+      /不保存记录/.test(guestSide.list) && !/还没有保存过/.test(guestSide.list), guestSide.list);
+    /* 计数显示 0 会被读成「一条都没有，攒着就有了」—— 那等于在承诺会攒。
+       游客的计数得是个**不可能**的值，才不会被误读。 */
+    check('记录计数不是 0（0 会被读成「攒着就有了」）', guestSide.count === '—', guestSide.count);
+    check('侧栏说明写明离开即清空', /清空/.test(guestSide.note), guestSide.note);
+
+    /* ---- 走完一次完整流程 ---- */
+    await cdp.eval(`(() => {
+      const ta = document.getElementById('rawPrompt');
+      ta.value = '帮我写一篇关于远程办公的公众号文章，要给公司同事看的';
+      ta.dispatchEvent(new Event('input', { bubbles: true }));
+    })()`);
+    await sleep(250);
+    await cdp.eval('document.getElementById("startBtn").click()');
+    await sleep(400);
+
+    let guestRound = 0;
+    while (guestRound < 15) {
+      if (await cdp.eval('!document.getElementById("stageResult").classList.contains("hidden")')) break;
+      if (!(await cdp.eval('document.querySelectorAll(".q-block").length'))) break;
+      guestRound += 1;
+      await cdp.eval(`(() => {
+        document.querySelectorAll('.q-block').forEach(b => {
+          const opts = Array.from(b.querySelectorAll('.option-btn'))
+            .filter(x => !x.classList.contains('is-skip') && !x.classList.contains('is-custom'));
+          if (opts.length) opts[0].click();
+        });
+      })()`);
+      await cdp.eval('document.getElementById("nextBtn").click()');
+      await sleep(260);
+    }
+    check('游客也能走完整个拆解流程', guestRound >= 5, '轮数=' + guestRound);
+    await sleep(500);
+    const guestPrompt = await cdp.eval('document.getElementById("finalPrompt").textContent');
+    check('游客拿到了最终 Prompt', guestPrompt.length > 200, '长度=' + guestPrompt.length);
+
+    /* ---- 结果区必须当场说明「这次没保存」 ---- */
+    const notice = await cdp.eval(`(() => {
+      const n = document.getElementById('guestNotice');
+      if (!n) return null;
+      const cs = getComputedStyle(n);
+      const r = n.getBoundingClientRect();
+      return {
+        hidden: n.classList.contains('hidden'),
+        text: n.textContent.replace(/\\s+/g, ' ').trim(),
+        display: cs.display, visibility: cs.visibility, opacity: cs.opacity,
+      };
+    })()`);
+    check('结果区出现「这次没有保存」的提示', !!notice && !notice.hidden, notice && notice.text);
+    check('提示文案说清了原因和出口',
+      !!notice && /没有保存/.test(notice.text) && /登录/.test(notice.text), notice && notice.text);
+
+    /* 位置分两个时刻量 —— 但**两个时刻量的不是同一个东西**。
+       ------------------------------------------------------------------
+       一开始这里两个时刻都量 .guest-notice，第二条跑出来 top=-1536。
+       那不是缺陷，是**断言写错了**：提示块在结果区顶部，滚到底被推走是
+       正常行为，一条提示不该跟着人走到底。硬要它粘住，反而会盖住内容。
+       真正的设计分工是：
+         · .guest-notice   = **一次性解释**（为什么这次没保存 + 出口）
+                             → 只在「刚进结果区」那一刻必须看得见
+         · 顶栏 #envBadge  = **持续标识**（我一直在免注册模式）
+                             → 无论滚到哪都必须看得见
+       所以第二个时刻量的是**标识**，不是提示。两个时刻守两条不同的承诺，
+       各配一条变异（见 mutation-check-ui.js）。
+
+       ⚠️ 滚的时候要把**所有能滚的**都滚到底。只写 mainScroll.scrollTop
+       的话，一旦有人把滚动从内层 div 挪到文档上（.app-shell 不再 overflow:hidden），
+       那句就变成空操作，页面纹丝不动、标识当然还在视口里 ——
+       **断言会变成永远为真的摆设**。滚三个地方，布局怎么改都真的到底了。 */
+    const scrollToBottom = () => cdp.eval(`(() => {
+      const m = document.getElementById('mainScroll');
+      if (m) m.scrollTop = 99999;
+      document.documentElement.scrollTop = 99999;
+      document.body.scrollTop = 99999;
+      window.scrollTo(0, 99999);
+      return true;
+    })()`);
+    const noticePos = () => cdp.eval(`(() => {
+      const n = document.getElementById('guestNotice');
+      const r = n.getBoundingClientRect();
+      return { top: Math.round(r.top), bottom: Math.round(r.bottom), vh: window.innerHeight };
+    })()`);
+    const badgePos = () => cdp.eval(`(() => {
+      const b = document.getElementById('envBadge');
+      if (!b) return null;
+      const cs = getComputedStyle(b);
+      const r = b.getBoundingClientRect();
+      return {
+        hidden: b.classList.contains('hidden'),
+        display: cs.display, visibility: cs.visibility,
+        top: Math.round(r.top), bottom: Math.round(r.bottom), vh: window.innerHeight,
+      };
+    })()`);
+    await cdp.eval('document.getElementById("mainScroll").scrollTop = 0');
+    await cdp.eval('window.scrollTo(0, 0)');
+    await sleep(150);
+    const n1 = await noticePos();
+    await cdp.shot(path.join(SHOT_DIR, '15-guest-result.png'));
+    await scrollToBottom();
+    await sleep(150);
+    const b2 = await badgePos();
+    check('刚进结果区时「这次没保存」的提示在视口里',
+      n1.top >= 0 && n1.top < n1.vh, 'top=' + n1.top + ' vh=' + n1.vh);
+    /* ⚠️ 判「在视口里」之前先判「它是不是被画出来了」——
+       隐藏元素的 getBoundingClientRect() 全 0，而 0 恰好满足
+       「top >= 0 且 bottom <= vh」，不先判这一条，整条断言在
+       「标识压根没显示」的时候反而更绿。 */
+    check('滚到底之后顶栏的免注册标识仍在视口内（持续标识不随内容滚走）',
+      !!b2 && !b2.hidden && b2.display !== 'none' && b2.visibility !== 'hidden'
+        && b2.top >= 0 && b2.bottom <= b2.vh,
+      b2 && ('hidden=' + b2.hidden + ' top=' + b2.top + ' bottom=' + b2.bottom + ' vh=' + b2.vh));
+
+    /* ---- 「不保存」的两条独立证据 ---- */
+    const writeReqs = cdp.events
+      .filter((e) => e.method === 'Network.requestWillBeSent')
+      .map((e) => e.params && e.params.request)
+      .filter((r) => r && r.url.indexOf('/api/projects') !== -1)
+      .map((r) => r.method + ' ' + r.url.replace(BASE, ''));
+    check('整个游客流程没有向 /api/projects 发过任何请求', writeReqs.length === 0, writeReqs.join(' | '));
+
+    const projectsAfter = countProjects();
+    check('服务端记录条数一条没变（真的没落盘）',
+      projectsAfter === projectsBefore, projectsBefore + ' → ' + projectsAfter);
+
+    /* ---- 交接：只有点登录才写、只被消费一次 ---- */
+    const handoffEarly = await cdp.eval(
+      'window.sessionStorage.getItem("promptlens.guest.handoff.v1")');
+    check('走流程时不会提前写交接（只有点登录才写）', handoffEarly === null, String(handoffEarly));
+
+    await cdp.eval('document.getElementById("guestNoticeLogin").click()');
+    await sleep(200);
+    const handoffRaw = await cdp.eval(
+      'window.sessionStorage.getItem("promptlens.guest.handoff.v1")');
+    let handoff = null;
+    try { handoff = JSON.parse(handoffRaw); } catch (e) { /* 保持 null */ }
+    check('点「登录以保存」写出了交接数据', !!handoff && handoff.v === 1,
+      String(handoffRaw).slice(0, 70));
+    check('交接里带着已经答过的内容',
+      !!handoff && !!handoff.session && !!handoff.session.answers
+        && Object.keys(handoff.session.answers).length > 0,
+      handoff && JSON.stringify(Object.keys(handoff.session.answers || {})).slice(0, 70));
+
+    let atLogin = false;
+    for (let i = 0; i < 30; i += 1) {
+      await sleep(200);
+      if ((await cdp.eval('location.pathname')).indexOf('login') !== -1) { atLogin = true; break; }
+    }
+    check('点「登录以保存」跳到了登录页', atLogin, await cdp.eval('location.href'));
+
+    /* ---- 注册 → 回工作台 → 交接必须被接住、并且只接一次 ---- */
+    const guestUser = 'guest2' + Date.now().toString(36);
+    await cdp.eval(`(() => {
+      document.querySelector('.tab[data-tab="register"]').click();
+      document.getElementById('username').value = ${JSON.stringify(guestUser)};
+      document.getElementById('password').value = 'test123456';
+      document.getElementById('displayName').value = '游客转正';
+      document.getElementById('authForm').dispatchEvent(new Event('submit', {cancelable:true, bubbles:true}));
+      return true;
+    })()`);
+
+    let backInApp = false;
+    for (let i = 0; i < 40; i += 1) {
+      await sleep(200);
+      if ((await cdp.eval('location.pathname')).indexOf('app.html') !== -1) { backInApp = true; break; }
+    }
+    check('游客注册后回到工作台', backInApp, await cdp.eval('location.href'));
+    await sleep(700);
+
+    /* 交接被消费掉之后必须**立刻删**。留着的话下次再开 app.html 会把旧进度
+       又倒回来一遍，用户会以为「我明明重新开始了，怎么又回来了」——
+       而这个 bug 只在「用过一次免注册并且登录过」之后才出现，很难复现。 */
+    const handoffLeft = await cdp.eval(
+      'window.sessionStorage.getItem("promptlens.guest.handoff.v1")');
+    check('交接被消费后立刻清掉（不会留着下次又倒回来）', handoffLeft === null, String(handoffLeft));
+
+    const restoredPrompt = await cdp.eval('document.getElementById("finalPrompt").textContent');
+    check('注册后直接看到免注册时做出来的那份结果（进度没白做）',
+      restoredPrompt.length > 200 && restoredPrompt === guestPrompt,
+      '长度=' + restoredPrompt.length + ' 与游客时一致=' + (restoredPrompt === guestPrompt));
+    check('回工作台后不再是游客（标识已收起）',
+      await cdp.eval('document.getElementById("envBadge").classList.contains("hidden")'));
+    check('回工作台后侧栏恢复成「我的记录」',
+      (await cdp.eval('document.getElementById("historyCount").textContent')).trim() !== '—',
+      await cdp.eval('document.getElementById("historyCount").textContent'));
 
     /* ⚠️ 这里**不能**先 ws.close()：关浏览器要靠 finally 里的
        closeBrowser(ws, ...) 往这条连接上发 Browser.close。连接一断，那条命令

@@ -72,6 +72,8 @@
         <div class="sidebar-empty"><span data-i18n>还没有保存过 Prompt。</span><br><span data-i18n>完成一次拆解后会自动存进这里。</span></div>
       </div>
       <div class="sidebar-foot">
+        <!-- 只在免注册模式显示：把「不保存」这件事的出口放在它旁边 -->
+        <button class="btn btn-sm hidden" id="guestLoginBtn" data-i18n>登录以保存记录</button>
         <div class="tiny muted" id="storageNote" style="line-height:1.6"></div>
       </div>
     </aside>
@@ -141,6 +143,14 @@
             <div class="result-hero">
               <h2 data-i18n>你的 Prompt 已经成型了</h2>
               <p id="resultSummary"></p>
+              <!-- 免注册模式下结果**不会**进历史。
+                   放在这里而不是侧栏：这是用户第一眼看到成品的地方，
+                   也正是他最可能想「把它存下来」的那一刻。
+                   只在 saveProject 走游客分支时才显出来。 -->
+              <div class="guest-notice hidden" id="guestNotice">
+                <span data-i18n>这次的结果没有保存 —— 免注册模式不写记录。登录后重新拆解一次就会自动存下来。</span>
+                <button class="btn btn-sm" id="guestNoticeLogin" data-i18n>登录以保存</button>
+              </div>
               <div class="improve-grid" id="improveGrid"></div>
             </div>
 

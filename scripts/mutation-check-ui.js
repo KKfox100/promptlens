@@ -241,6 +241,37 @@ const MUTATIONS = [
     to: '',
     expect: /320px 落地页无横向溢出/,
   },
+  /* ---------------- 免注册模式：两条位置断言，各配一条变异 ----------------
+     免注册最要命的失效不是「不保存」没实现，而是**用户不知道它不保存**。
+     所以 [15] 里那两个时刻量的是两件不同的事：
+       · 刚进结果区 → 一次性解释（.guest-notice）必须在视口里
+       · 滚到底     → 持续标识（顶栏 #envBadge）必须在视口里
+     一个变异打不红两条，所以这里给每条各来一个。 */
+  {
+    name: '「这次没保存」的提示被挪到结果区最末尾（首屏看不见）',
+    file: WORKSPACE,
+    from: "      if (el.guestNotice) el.guestNotice.classList.remove('hidden');",
+    to: "      if (el.guestNotice) {\n"
+      + "        el.guestNotice.classList.remove('hidden');\n"
+      + "        document.getElementById('stageResult').appendChild(el.guestNotice);\n"
+      + "      }",
+    expect: /刚进结果区时「这次没保存」的提示在视口里/,
+  },
+  /* 顶栏跟着内容一起滚 —— 改法是把滚动从内层 .main-scroll 挪到文档上
+     （去掉 .app-shell 的 height:100vh 和 overflow:hidden），
+     这是「整页滚动」重构里最常见的一步。
+     ⚠️ 这一条能抓到，靠的是测试**把所有能滚的都滚到底**：
+     只写 mainScroll.scrollTop 的话，这句在改完之后变成空操作，
+     页面纹丝不动、标识当然还在视口里 —— 断言会变成永远为真的摆设。
+     这个变异同时就是「滚三个地方」那句注释的证明。 */
+  {
+    name: '顶栏跟着内容一起滚（免注册标识滚出视野）',
+    file: CSS,
+    from: '.app-shell {\n  height: 100vh;\n  height: 100dvh;\n  display: flex;\n  flex-direction: column;\n  overflow: hidden;\n}',
+    to: '.app-shell {\n  display: flex;\n  flex-direction: column;\n}',
+    expect: /滚到底之后顶栏的免注册标识仍在视口内/,
+  },
+
   /* ⚠️ 这里原来有一条「≤390px 页头不收边距」的变异，09-24 删了 ——
      它**抓不到**：把 main.css 里那一档删掉，485 条断言一条都不红。
      删不红的变异留着，等于给自己一个「这块有测试守着」的错觉。 */

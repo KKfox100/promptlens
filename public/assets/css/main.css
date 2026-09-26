@@ -540,6 +540,19 @@ a:hover { text-decoration: underline; text-underline-offset: 2px; }
 
 .auth-switch { text-align: center; font-size: var(--fs-sm); color: var(--ink-3); margin-top: 20px; }
 
+/* 登录页的免注册出口。
+   用一条细线把它和上面的「注册」切换提示分开 —— 那一条是「换个方式用同一个账号」，
+   这一条是「干脆不要账号」，两件事不该长得一样。
+   不用朱红：朱红留给表单里那个唯一的主动作（登录 / 注册）。 */
+.auth-guest {
+  text-align: center;
+  font-size: var(--fs-xs);
+  color: var(--ink-3);
+  margin-top: 10px;
+  padding-top: 12px;
+  border-top: 1px solid var(--rule);
+}
+
 /* ==================================================================
    工作台骨架
    ================================================================== */
@@ -758,6 +771,9 @@ a:hover { text-decoration: underline; text-underline-offset: 2px; }
 }
 
 .sidebar-foot { padding: 12px 14px; border-top: 1px solid var(--rule); }
+/* 免注册模式下的「登录以保存记录」：占满一行，和下面的说明拉开距离 */
+.sidebar-foot .btn { width: 100%; justify-content: center; }
+.sidebar-foot .btn + .tiny { margin-top: 9px; }
 
 /* ---------- 主区 ---------- */
 
@@ -1600,6 +1616,28 @@ a:hover { text-decoration: underline; text-underline-offset: 2px; }
   background: var(--warn-soft);
   color: var(--warn-ink);
 }
+
+/* ---------- 免注册模式：这次的结果没有保存 ----------
+   用 warn 组而不是朱红：朱红是全站唯一的填充色，留给底栏那个唯一的主动作
+   （复制 Prompt）。这里是**提醒**，不是主操作 —— 两个主按钮同屏会互相削弱。
+   flex-wrap 而不是宽度断点：窄屏下按钮自然换行，
+   而宽度断点在触摸设备上够不着（见 pages-seo-mobile 那一节）。 */
+.guest-notice {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 12px;
+  margin-top: 14px;
+  padding: 10px 13px;
+  border-radius: 0 var(--radius) var(--radius) 0;
+  border-left: 3px solid var(--warn);
+  background: var(--warn-soft);
+  color: var(--warn-ink);
+  font-size: var(--fs-xs);
+  line-height: 1.8;
+}
+.guest-notice > span { flex: 1 1 240px; }
+.guest-notice .btn { flex: none; }
 
 /* 决定清单：印刷表格 —— 只有横线 */
 .decision-table { width: 100%; border-collapse: collapse; font-size: var(--fs-sm); }

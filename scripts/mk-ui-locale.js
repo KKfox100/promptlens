@@ -124,8 +124,14 @@ function scanLiterals() {
 
   targets.forEach((file) => {
     const src = fs.readFileSync(file, 'utf8');
-    // 前面不能是标识符字符或 `.` —— 否则 `K.t(` / `foo_t(` 也会被算进来
-    const re = /(^|[^\w$.])t\(/g;
+    /* 前面不能是标识符字符或 `.` —— 否则 `K.t(` / `foo_t(` 也会被算进来。
+       ⚠️ 大小写都要认：`login.html` 用的是 `var T = I18n.t;` 这个**别名**，
+       14 处 `T('…')` 全是界面文案。只认小写 t 的话这些 key 一条都进不来，
+       而它们恰好又都在「跑一遍流程也走不到」的分支上 ——
+       切到注册标签的标题、空表单提交的错误提示、处理中的转圈文案 ——
+       第 12 节（运行时清单）同样扫不到。两头都漏 = 登录页整页停在中文。
+       全仓确认过：只有 login.html 用这个别名（14 处），不会误伤。 */
+    const re = /(^|[^\w$.])[tT]\(/g;
     let m;
     while ((m = re.exec(src))) {
       const lit = readLiteral(src, m.index + m[0].length);

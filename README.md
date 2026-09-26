@@ -33,8 +33,16 @@ node server.js
 # → http://127.0.0.1:5178
 ```
 
-打开后是公开落地页，点「开始使用」注册一个账号即可（数据落在 `data/db.json`，
-该目录不会进版本库）。
+打开后是公开落地页。**主按钮是「免注册试用」** —— 不用注册就能走完整条链路，
+但免注册模式**不保存任何记录**：不写库、不进历史，关掉页面即清空。
+想留存记录再登录/注册（登录时会把免注册期间已经做过的选择**带过去**）。
+数据落在 `data/db.json`，该目录不会进版本库。
+
+> 为什么闸门是**显式的**（`?guest=1`）而不是「没会话就静默降级」：
+> 静默降级的话，一个**过期的会话**也会悄悄变成不保存，而用户还以为自己在账号里 ——
+> 那正是这个项目里最高频的一类 bug。同理，免注册→登录的交接暂存在
+> `sessionStorage`（只活当前标签页）而不是 `localStorage`，这样「退出即清空」
+> 这条承诺不会因为多了交接功能而漏出一个持久化的口子。
 
 ### 只想看看界面
 
@@ -109,7 +117,7 @@ node scripts/check-locale-parity.js  # 六语种行为一致性
 node scripts/check-locale-corpus.js  # 六语种语料自检
 
 node server.js &                     # 下面这些需要服务在跑
-node scripts/browser-check.js        # 界面：485 条（含手机/iPad/极窄屏）
+node scripts/browser-check.js        # 界面：516 条（含手机/iPad/极窄屏/免注册模式）
 node scripts/browser-check-file.js   # file:// 数据层：16 条
 node scripts/check-landing-live.js   # 落地页实机：637 条（六语种 × 六种宽度）
 node scripts/check-api.js            # 接口契约：50 条（打 Node 后端）
@@ -141,8 +149,15 @@ http 下必须没有 —— 各只覆盖一边。想造 https 环境：
 ```bash
 node scripts/check-mutation-anchors.js   # 先做 5 秒静态预检（锚点还在不在）
 node scripts/mutation-check.js           # 引擎：48 条
-node scripts/mutation-check-ui.js        # 界面：23 条（约 2 小时，需先停掉 5178）
+node scripts/mutation-check-ui.js        # 界面：25 条（约 2 小时，需先停掉 5178）
+
+# 只跑一段（1 起的序号，含首含尾）—— 改完一小块时不必等全套
+MUT_FROM=24 MUT_TO=25 PORT=5179 node scripts/mutation-check-ui.js
 ```
+
+⚠️ 用 `PORT=5179` 绕开 5178 上那个**不是自己起的**服务，比去杀它安全
+（脚本自己拉起服务并把 `BASE` 传给子进程；`PORT` 是它自己的服务端口，
+不是 `browser-check.js` 的 `BASE` —— 两者别类推）。
 
 `check-mutation-anchors.js` 值得单独说：变异脚本最容易失败的方式不是「没抓到」，
 而是「锚点找不到」—— 报错只说「命中 0 次」，而一轮要跑两小时。
