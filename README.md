@@ -150,7 +150,7 @@ http 下必须没有 —— 各只覆盖一边。想造 https 环境：
 ```bash
 node scripts/check-mutation-anchors.js   # 先做 5 秒静态预检（锚点还在不在）
 node scripts/mutation-check.js           # 引擎：51 条（含 6 条 LLMO）
-node scripts/mutation-check-ui.js        # 界面：39 条（约 2 小时，需先停掉 5178）
+node scripts/mutation-check-ui.js        # 界面：39 条（实测约 3 小时，需先停掉 5178）
 
 # 只跑一段（1 起的序号，含首含尾）—— 改完一小块时不必等全套
 MUT_FROM=37 MUT_TO=39 PORT=5179 node scripts/mutation-check-ui.js
